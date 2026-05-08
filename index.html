@@ -1,665 +1,308 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LTISD Facility Rentals</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--primary:#b91c1c;--primary-dark:#991b1b;--primary-light:#fee2e2;--black:#111827;--green:#0e7c4a;--green-light:#e6f7ef;--orange:#b45309;--orange-light:#fff8e1;--purple:#5b3fa3;--purple-light:#f0ecfb;--blue:#1e5fba;--sky:#e8f1fd;--gold:#d4930a;--gold-light:#fdf3d9;--gray-100:#f5f5f5;--gray-200:#e5e7eb;--gray-300:#d1d5db;--gray-400:#9ca3af;--gray-600:#4b5563;--gray-800:#1f2937;--font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:10px;--shadow:0 2px 12px rgba(0,0,0,.10)}
-body{font-family:var(--font);color:var(--gray-800);background:var(--gray-100);min-height:100vh}
-.nav{background:var(--black);padding:0 16px;display:flex;align-items:center;height:54px;gap:4px;overflow-x:auto;border-bottom:3px solid var(--primary)}
-.nav-logo{font-size:13px;font-weight:600;color:white;letter-spacing:.04em;text-transform:uppercase;margin-right:12px;white-space:nowrap}
-.nav-logo span{color:#f87171}
-.nav-tab{padding:6px 11px;border-radius:6px;font-size:12px;font-weight:500;color:rgba(255,255,255,.65);cursor:pointer;border:none;background:none;transition:all .15s;white-space:nowrap;flex-shrink:0}
-.nav-tab:hover{color:white;background:rgba(255,255,255,.1)}
-.nav-tab.active{color:white;background:var(--primary)}
-.view{display:none;padding:22px 20px 60px;max-width:920px;margin:0 auto}
-.view.active{display:block}
-.page-header{margin-bottom:20px}
-.page-title{font-size:21px;font-weight:600;color:var(--black);margin-bottom:3px}
-.page-sub{font-size:13px;color:var(--gray-600)}
-.card{background:white;border-radius:var(--radius);border:1px solid var(--gray-200);padding:20px;margin-bottom:16px;box-shadow:var(--shadow)}
-.card-title{font-size:12px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
-.field{margin-bottom:12px}
-.field label{display:block;font-size:13px;font-weight:500;color:var(--gray-800);margin-bottom:5px}
-.field label .req{color:var(--primary)}
-.field input,.field select,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--gray-200);border-radius:8px;font-family:var(--font);font-size:14px;color:var(--gray-800);background:white;transition:border-color .15s}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--primary)}
-.field textarea{min-height:70px;resize:vertical}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.field-note{font-size:11px;color:var(--gray-600);margin-top:3px}
-.tier-badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:600}
-.tier-1{background:var(--gold-light);color:var(--gold)}.tier-2{background:#fee2e2;color:var(--primary-dark)}.tier-3{background:var(--green-light);color:var(--green)}.tier-4{background:var(--gray-100);color:var(--gray-600)}
-.status{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;white-space:nowrap}
-.status-pending{background:var(--orange-light);color:var(--orange)}.status-confirmed{background:var(--sky);color:var(--blue)}.status-scheduled{background:var(--purple-light);color:var(--purple)}.status-unavailable{background:#fee2e2;color:var(--primary)}.status-cancelled{background:var(--gray-100);color:var(--gray-600)}.status-late-cancel{background:#fee2e2;color:var(--primary-dark)}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
-.btn-primary{background:var(--primary);color:white}.btn-primary:hover{background:var(--primary-dark)}
-.btn-success{background:var(--green);color:white}.btn-success:hover{background:#0a6038}
-.btn-ghost{background:none;color:var(--primary);border:1px solid var(--primary)}.btn-ghost:hover{background:#fee2e2}
-.btn-sm{padding:5px 10px;font-size:12px}.btn-print{background:var(--black);color:white}.btn-warn{background:var(--orange);color:white}
-.btn-danger-sm{background:none;color:var(--primary);border:1px solid var(--primary);font-family:var(--font);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer}
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:9px 11px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:white;background:var(--black);border-bottom:2px solid var(--primary)}
-td{padding:10px 11px;border-bottom:1px solid var(--gray-200);color:var(--gray-800);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#fef9f9}
-.alert{padding:12px 15px;border-radius:8px;font-size:13px;margin-bottom:14px;display:flex;align-items:flex-start;gap:9px;line-height:1.5}
-.alert-success{background:var(--green-light);color:var(--green);border:1px solid #a7dfc6}
-.alert-error{background:#fee2e2;color:var(--primary-dark);border:1px solid #fca5a5}
-.alert-info{background:var(--sky);color:var(--blue);border:1px solid #bfdbfe}
-.alert-warning{background:var(--orange-light);color:var(--orange);border:1px solid #fcd34d}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:18px}
-.stat-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:15px;box-shadow:var(--shadow);border-top:3px solid var(--primary)}
-.stat-num{font-size:26px;font-weight:600;color:var(--black);font-family:var(--mono)}
-.stat-label{font-size:11px;color:var(--gray-600);margin-top:3px}
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:100;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:white;border-radius:14px;padding:24px;width:580px;max-width:96vw;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-title{font-size:16px;font-weight:600;color:var(--black);margin-bottom:4px}
-.modal-sub{font-size:13px;color:var(--gray-600);margin-bottom:16px}
-.modal-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end}
-.empty{text-align:center;padding:40px 24px;color:var(--gray-400);font-size:14px}
-.empty-icon{font-size:28px;margin-bottom:10px}
-.group-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.group-pill{padding:8px 18px;border-radius:20px;border:2px solid var(--gray-200);background:white;font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;color:var(--gray-600)}
-.group-pill:hover{border-color:var(--primary);color:var(--primary)}
-.group-pill.selected{border-color:var(--primary);background:var(--primary);color:white;font-weight:600}
-.school-section{margin-bottom:14px}
-.school-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-400);margin-bottom:6px;padding-bottom:3px;border-bottom:2px solid var(--primary)}
-.facilities-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.facility-tile{border:2px solid var(--gray-200);border-radius:8px;padding:8px 10px;cursor:pointer;transition:all .2s;font-size:12px;font-weight:500;color:var(--gray-700);background:white;text-align:left;line-height:1.3;position:relative}
-.facility-tile:hover{border-color:var(--primary);background:#fff1f1;color:var(--primary-dark)}
-.facility-tile.selected{border-color:var(--primary);background:var(--primary);color:white;font-weight:600}
-.facility-tile.selected::after{content:'✓';position:absolute;top:4px;right:6px;font-size:11px;font-weight:700;color:white}
-.selected-facility-bar{display:none;align-items:center;gap:8px;padding:10px 14px;background:var(--primary);color:white;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px}
-.selected-facility-bar.visible{display:flex}
-.awaiting-pill{display:inline-flex;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:var(--orange-light);color:var(--orange)}
-.mode-tabs{display:flex;border:2px solid var(--black);border-radius:9px;overflow:hidden;margin-bottom:18px}
-.mode-tab{flex:1;padding:9px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border:none;background:white;color:var(--gray-600);transition:all .15s}
-.mode-tab.active{background:var(--black);color:white}
-.mode-tab:first-child{border-right:2px solid var(--black)}
-.window-banner{display:flex;align-items:flex-start;gap:9px;background:#fff1f1;border:1px solid #fca5a5;border-radius:8px;padding:9px 13px;font-size:12px;color:var(--primary-dark);margin-bottom:14px;flex-wrap:wrap}
-.drop-zone{border:2px dashed var(--gray-300);border-radius:10px;padding:24px 20px;text-align:center;cursor:pointer;transition:all .15s;background:var(--gray-100)}
-.drop-zone:hover,.drop-zone.drag-over{border-color:var(--primary);background:#fee2e2}
-.bulk-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
-.bulk-ok{background:var(--green-light);color:var(--green)}.bulk-warn{background:var(--orange-light);color:var(--orange)}.bulk-err{background:#fee2e2;color:var(--primary-dark)}
-.agreement-scroll{max-height:260px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:8px;padding:14px;font-size:12px;line-height:1.7;background:var(--gray-100);margin-bottom:14px}
-.agreement-scroll h3{font-size:13px;font-weight:600;margin:10px 0 3px;color:var(--black)}
-.agreement-check{display:flex;align-items:flex-start;gap:10px;padding:12px;background:#fff1f1;border-radius:8px;border:1px solid #fca5a5;margin-top:10px}
-.agreement-check input[type=checkbox]{width:18px;height:18px;margin-top:2px;cursor:pointer;flex-shrink:0;accent-color:var(--primary)}
-.agreement-check label{font-size:13px;color:var(--primary-dark);font-weight:500;cursor:pointer;line-height:1.5}
-.invoice-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
-.invoice-header{background:var(--black);color:white;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--primary)}
-.invoice-header h3{font-size:14px;font-weight:600;color:white}
-.invoice-meta{font-size:11px;color:rgba(255,255,255,.75)}
-.invoice-body{padding:14px 18px}
-.inv-subtotal{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--gray-600)}
-.inv-total{display:flex;align-items:center;justify-content:space-between;padding:7px 0 0;border-top:2px solid var(--black);margin-top:5px;font-weight:600;font-size:14px;color:var(--black)}
-.month-select{padding:7px 11px;border:1px solid var(--gray-200);border-radius:7px;font-family:var(--font);font-size:13px;margin-right:8px}
-.fac-card{background:white;border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid var(--primary)}
-.fac-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.fac-name-badge{font-size:15px;font-weight:600;color:var(--black)}
-.fac-email{font-size:12px;color:var(--gray-600)}
-.fac-facilities-wrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
-.fac-fac-tag{display:inline-flex;align-items:center;padding:3px 8px;background:#fff1f1;color:var(--primary-dark);border-radius:6px;font-size:11px;font-weight:500;border:1px solid #fca5a5}
-.fac-count{display:inline-flex;padding:2px 8px;background:#fee2e2;color:var(--primary-dark);border-radius:20px;font-size:11px;font-weight:600}
-.fac-check-section{margin-bottom:14px}
-.fac-check-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-600);margin-bottom:7px;padding-bottom:3px;border-bottom:2px solid var(--primary)}
-.fac-check-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
-.fac-check-item{display:flex;align-items:center;gap:7px;padding:5px 8px;border:1px solid var(--gray-200);border-radius:7px;cursor:pointer;font-size:12px;font-weight:500;color:var(--gray-700);transition:all .12s;background:white}
-.fac-check-item:hover{border-color:var(--primary);background:#fff1f1}
-.fac-check-item input{width:14px;height:14px;cursor:pointer;flex-shrink:0;accent-color:var(--primary)}
-.fac-check-item.checked{border-color:var(--primary);background:var(--primary);color:white}
-.fac-check-item.checked input{accent-color:white}
-.live-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green)}
-.live-dot::before{content:'';display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.checking-spinner{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--gray-600);padding:10px 0}
-.checking-spinner::before{content:'';width:14px;height:14px;border:2px solid var(--gray-200);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.login-screen{position:fixed;inset:0;background:var(--gray-100);display:flex;align-items:center;justify-content:center;z-index:200}
-.login-box{background:white;border-radius:14px;padding:32px;width:380px;max-width:94vw;box-shadow:0 20px 60px rgba(0,0,0,.15);border-top:4px solid var(--primary)}
-.login-logo{font-size:14px;font-weight:700;color:var(--black);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
-.login-logo span{color:var(--primary)}
-.login-title{font-size:18px;font-weight:600;color:var(--black);margin-bottom:4px}
-.login-sub{font-size:13px;color:var(--gray-600);margin-bottom:20px}
-.login-err{background:#fee2e2;color:var(--primary-dark);border:1px solid #fca5a5;border-radius:8px;padding:10px 13px;font-size:13px;margin-bottom:12px;display:none}
-.logout-btn{background:none;border:none;color:rgba(255,255,255,.6);font-family:var(--font);font-size:11px;cursor:pointer;margin-left:auto;padding:4px 8px;border-radius:4px;flex-shrink:0}
-.logout-btn:hover{color:white;background:rgba(255,255,255,.1)}
-.db-dot{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--green)}
-.db-dot::before{content:'';display:inline-block;width:7px;height:7px;background:var(--green);border-radius:50%}
-@media print{.nav,.no-print{display:none!important}.view{display:block!important;padding:0}.invoice-card{break-inside:avoid}}
-@media(max-width:600px){.field-row{grid-template-columns:1fr}.facilities-grid{grid-template-columns:repeat(2,1fr)}.stats-row{grid-template-columns:repeat(2,1fr)}}
-</style>
-</head>
-<body>
+// LTISD Facility Rental — Full Backend v9
+// Google Sheets database + Calendar checks + Email notifications
+// Sheet ID: 1JdMq0cEPyqqci7A6zuJKvT5rTkvakBfCy2YUr-Mxnvc
 
-<div class="login-screen" id="login-admin" style="display:none">
-  <div class="login-box">
-    <div class="login-logo">LT<span>ISD</span> Rentals</div>
-    <div class="login-title">Admin Access</div>
-    <div class="login-sub">Enter the admin password to continue.</div>
-    <div class="login-err" id="admin-err">Incorrect password. Please try again.</div>
-    <div class="field"><label>Password</label><input type="password" id="admin-pw-input" placeholder="Admin password" onkeydown="if(event.key==='Enter')checkAdminLogin()"></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="checkAdminLogin()">Sign in</button>
-  </div>
-</div>
+const SHEET_ID             = '1JdMq0cEPyqqci7A6zuJKvT5rTkvakBfCy2YUr-Mxnvc';
+const RENTAL_CALENDAR_ID   = 'ltisdschools.org_1uosiv82j65be13eqoo39800dg@group.calendar.google.com';
+const ATHLETIC_CALENDAR_ID = 'ltisdschools.org_64rm4chj01c523ojt6c4ob2ei8@group.calendar.google.com';
+const ADMIN_EMAIL          = 'drinkwaterm@ltisdschools.org';
+const FACILITATOR_PORTAL   = 'https://drinkwaterm-cmyk.github.io/ltisd-rentals/';
 
-<div class="login-screen" id="login-facilitator" style="display:none">
-  <div class="login-box">
-    <div class="login-logo">LT<span>ISD</span> Rentals</div>
-    <div class="login-title">Facilitator Portal</div>
-    <div class="login-sub">Enter your LTISD email and facilitator password.</div>
-    <div class="login-err" id="fac-err">Email not found or incorrect password.</div>
-    <div class="field"><label>Your email address</label><input type="email" id="fac-email-input" placeholder="yourname@ltisdschools.org" onkeydown="if(event.key==='Enter')checkFacLogin()"></div>
-    <div class="field"><label>Password</label><input type="password" id="fac-pw-input" placeholder="Facilitator password" onkeydown="if(event.key==='Enter')checkFacLogin()"></div>
-    <div id="fac-login-loading" style="display:none;font-size:13px;color:var(--gray-600);margin-bottom:10px"><span class="checking-spinner">Verifying...</span></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" id="fac-login-btn" onclick="checkFacLogin()">Sign in</button>
-  </div>
-</div>
+// ── SHEET HELPERS ─────────────────────────────────────────────────────────────
+function getSheet(name) {
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  let sheet = ss.getSheetByName(name);
+  if (!sheet) sheet = ss.insertSheet(name);
+  return sheet;
+}
 
-<div id="app">
-<div class="nav">
-  <div class="nav-logo">LT<span>ISD</span> Rentals</div>
-  <button class="nav-tab active" onclick="showView('request',this)">Submit Request</button>
-  <button class="nav-tab" onclick="gotoFacilitator(this)">Facilitator Portal</button>
-  <button class="nav-tab" onclick="gotoAdmin('admin',this)">Admin</button>
-  <button class="nav-tab" onclick="gotoAdmin('roster',this)">Facilitator Roster</button>
-  <button class="nav-tab" onclick="gotoAdmin('invoices',this)">Invoices</button>
-  <button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">Sign out</button>
-</div>
+function ensureHeaders(sheet, headers) {
+  if (sheet.getLastRow() === 0 || sheet.getRange(1,1).getValue() === '') {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold');
+  }
+}
 
-<div class="view active" id="view-request">
-  <div class="page-header"><div class="page-title">Request a Facility Rental</div><div class="page-sub">Availability checked live against Google Calendars. <span class="live-dot">Live calendar connected</span></div></div>
-  <div id="req-alert"></div>
-  <div class="card">
-    <div class="card-title">Your group</div>
-    <div class="group-pills">
-      <button class="group-pill selected" onclick="selectGroup('LTYA','tier-2','Reduced Level 2',this)">LTYA</button>
-      <button class="group-pill" onclick="selectGroup('HS Clubs','tier-1','Reduced Level 1',this)">HS Clubs</button>
-      <button class="group-pill" onclick="selectGroup('Special Olympics','tier-3','Reduced Level 3',this)">Special Olympics</button>
-      <button class="group-pill" onclick="selectGroup('General Public','tier-4','Standard',this)">General Public</button>
-    </div>
-    <div id="window-banner"></div>
-    <div class="field-row">
-      <div class="field"><label>Contact name <span class="req">*</span></label><input type="text" id="r-name" placeholder="Full name"></div>
-      <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="r-email" placeholder="email@example.com"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" id="r-phone" placeholder="(512) 000-0000"></div>
-      <div class="field"><label>Organization name <span class="req">*</span></label><input type="text" id="r-org" placeholder="Organization or club name"></div>
-    </div>
-    <div class="field"><label>Insurance (carrier + policy #) <span class="req">*</span></label><input type="text" id="r-insurance" placeholder="e.g. Allstate #PLY-44821"><div class="field-note">General Liability: $1M per occurrence / $1M aggregate. LTISD listed as Additional Insured.</div></div>
-  </div>
-  <div id="mode-switcher" style="display:none">
-    <div class="mode-tabs">
-      <button class="mode-tab active" id="tab-single" onclick="setMode('single')">Single request</button>
-      <button class="mode-tab" id="tab-bulk" onclick="setMode('bulk')">Bulk upload (CSV)</button>
-    </div>
-  </div>
-  <div id="panel-single">
-    <div class="card">
-      <div class="card-title">Select facility <span class="req" style="font-size:13px">*</span></div>
-      <div class="selected-facility-bar" id="selected-facility-bar">
-        <span>&#128205;</span>
-        <div><strong id="selected-facility-name">None selected</strong><br><span style="font-size:12px;opacity:.8;font-weight:400">Selected facility</span></div>
-      </div>
-      <div class="school-section"><div class="school-label">Lake Travis High School</div><div class="facilities-grid" id="fac-lths"></div></div>
-      <div class="school-section"><div class="school-label">Bee Cave Middle School</div><div class="facilities-grid" id="fac-bcms"></div></div>
-      <div class="school-section"><div class="school-label">Lake Travis Middle School</div><div class="facilities-grid" id="fac-ltms"></div></div>
-      <div class="school-section"><div class="school-label">Hudson Bend Middle School</div><div class="facilities-grid" id="fac-hbms"></div></div>
-      <div class="school-section"><div class="school-label">Elementary Schools</div><div class="facilities-grid" id="fac-elem"></div></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Date &amp; time</div>
-      <div class="field-row">
-        <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="r-date" onchange="updatePricePreview()"></div>
-        <div class="field"><label>Start time <span class="req">*</span></label><input type="time" id="r-start" onchange="updatePricePreview()"></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>End time <span class="req">*</span></label><input type="time" id="r-end" onchange="updatePricePreview()"></div>
-        <div class="field"><label>Lights needed?</label><select id="r-lights" onchange="updatePricePreview()"><option value="no">No</option><option value="yes">Yes</option></select></div>
-      </div>
-      <div class="field-row">
-        <div class="field"><label>Custodian hours</label><input type="number" id="r-custodian" placeholder="0" min="0" onchange="updatePricePreview()"></div>
-        <div class="field"><label>Expected attendance</label><input type="number" id="r-attendance" placeholder="e.g. 50"></div>
-      </div>
-      <div class="field"><label>Activity description</label><textarea id="r-activity" placeholder="Brief description..."></textarea></div>
-      <div id="price-preview"></div>
-      <div style="margin-top:14px">
-        <button class="btn btn-ghost btn-sm" onclick="showAgreementModal()" style="margin-bottom:10px">&#128196; Review Facility Use Agreement</button>
-        <div id="agreement-status" style="font-size:12px;color:var(--gray-400);margin-bottom:10px">You must acknowledge the agreement before submitting.</div>
-        <button class="btn btn-primary" onclick="submitRequest()" id="submit-btn" disabled style="opacity:.5;cursor:not-allowed">Check availability &amp; submit</button>
-      </div>
-    </div>
-  </div>
-  <div id="panel-bulk" style="display:none">
-    <div class="card">
-      <div class="card-title">Bulk CSV upload</div>
-      <div class="alert alert-info"><span>&#8505;&#65039;</span><div style="font-size:12px">Format: <code style="font-family:var(--mono)">facility, date (YYYY-MM-DD), start, end, lights (yes/no), custodian hrs, attendance, activity</code></div></div>
-      <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="handleDrop(event)">
-        <div style="font-size:24px;margin-bottom:6px">&#128196;</div>
-        <div style="font-size:13px;color:var(--gray-600)">Click to select CSV or drag &amp; drop</div>
-      </div>
-      <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleFileSelect(event)">
-      <div class="field" style="margin-top:12px"><label>Or paste CSV</label><textarea id="csv-paste" style="min-height:80px;font-family:var(--mono);font-size:12px"></textarea></div>
-      <div style="margin-top:10px">
-        <button class="btn btn-ghost btn-sm" onclick="showAgreementModal()" style="margin-bottom:10px">&#128196; Review Facility Use Agreement</button>
-        <div id="bulk-agreement-status" style="font-size:12px;color:var(--gray-400);margin-bottom:10px">You must acknowledge the agreement before submitting.</div>
-        <button class="btn btn-primary" onclick="processBulk()" id="bulk-submit-btn" disabled style="opacity:.5;cursor:not-allowed">Check all &amp; submit available</button>
-      </div>
-    </div>
-    <div id="bulk-results"></div>
-  </div>
-</div>
+// ── FACILITATOR HEADERS ───────────────────────────────────────────────────────
+const FAC_HEADERS = ['id','name','email','phone','facilities','createdAt'];
+const RENTAL_HEADERS = ['id','name','email','phone','org','insurance','group','tier','tierName',
+  'facility','date','start','end','lights','custodianHours','attendance','activity',
+  'status','facilitator','facilitatorId','price','facilityFee','facilitatorFee',
+  'custodialFee','discountAmt','rateKey','createdAt','cancelledAt'];
 
-<div class="view" id="view-facilitator">
-  <div class="page-header">
-    <div class="page-title">Facilitator Portal</div>
-    <div class="page-sub">Signed in as <strong id="fac-logged-in-name"></strong> &mdash; showing only rentals at your approved facilities.</div>
-  </div>
-  <div id="fac-alert"></div>
-  <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px"><div class="card-title" style="margin-bottom:0">Open rentals at your approved facilities</div><div id="fac-approved-summary"></div></div><div id="fac-list"></div></div>
-</div>
+// ── MAIN ENTRY POINTS ─────────────────────────────────────────────────────────
+function doGet(e)  { return handleRequest(e); }
+function doPost(e) { return handleRequest(e); }
 
-<div class="view" id="view-admin">
-  <div class="page-header"><div class="page-title">Admin Dashboard</div><div class="page-sub"><span class="live-dot">Live calendar</span> &nbsp; <span class="db-dot">Google Sheets database</span></div></div>
-  <div class="stats-row" id="admin-stats"></div>
-  <div class="card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
-      <div class="card-title" style="margin-bottom:0">All rental requests</div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap">
-        <select id="filter-status" onchange="renderAdmin()" style="padding:6px 9px;border:1px solid var(--gray-200);border-radius:6px;font-family:var(--font);font-size:12px"><option value="">All statuses</option><option value="confirmed">Awaiting facilitator</option><option value="scheduled">Scheduled</option><option value="cancelled">Cancelled</option><option value="late-cancel">Late cancel</option></select>
-        <select id="filter-group" onchange="renderAdmin()" style="padding:6px 9px;border:1px solid var(--gray-200);border-radius:6px;font-family:var(--font);font-size:12px"><option value="">All groups</option><option>LTYA</option><option>HS Clubs</option><option>Special Olympics</option><option>General Public</option></select>
-        <button class="btn btn-ghost btn-sm" onclick="loadAllData()">&#8635; Refresh</button>
-      </div>
-    </div>
-    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Facility</th><th>Group</th><th>Contact</th><th>Facilitator</th><th>Facility fee</th><th>Fac. fee</th><th>Custodial</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="admin-table"></tbody></table></div>
-    <div id="admin-empty" class="empty" style="display:none"><div class="empty-icon">&#128203;</div>No rentals match.</div>
-  </div>
-</div>
-
-<div class="view" id="view-roster">
-  <div class="page-header"><div class="page-title">Facilitator Roster</div><div class="page-sub">Manage approved facilitators. Data stored in Google Sheets &mdash; available on all devices.</div></div>
-  <div id="roster-alert"></div>
-  <div class="card"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><div class="card-title" style="margin-bottom:0">Active facilitators</div><button class="btn btn-primary btn-sm" onclick="openAddFacilitator()">+ Add facilitator</button></div><div id="roster-list"></div></div>
-</div>
-
-<div class="view" id="view-invoices">
-  <div class="page-header"><div class="page-title">Monthly Invoices</div><div class="page-sub">Covers completed rentals from the selected month.</div></div>
-  <div class="card no-print"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><label style="font-size:13px;font-weight:500">Month:</label><select id="inv-month" class="month-select" onchange="renderInvoices()"></select><select id="inv-group" class="month-select" onchange="renderInvoices()"><option value="">All groups</option><option>LTYA</option><option>HS Clubs</option><option>Special Olympics</option><option>General Public</option></select><button class="btn btn-print btn-sm" onclick="window.print()">&#128424;&#65039; Print</button></div></div>
-  <div id="invoice-list"></div>
-</div>
-</div>
-
-<div class="modal-bg" id="modal-avail"><div class="modal"><div class="modal-title" id="modal-title"></div><div class="modal-sub" id="modal-sub"></div><div id="modal-body"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-avail')">Close</button><button class="btn btn-primary" id="modal-confirm-btn" style="display:none" onclick="confirmRental()">Confirm &amp; notify facilitators</button></div></div></div>
-<div class="modal-bg" id="modal-cancel"><div class="modal"><div class="modal-title">Cancel this rental?</div><div class="modal-sub">This cannot be undone.</div><div id="cancel-body"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-cancel')">Keep rental</button><button class="btn btn-warn" onclick="executeCancel()">Yes, cancel</button></div></div></div>
-<div class="modal-bg" id="modal-facilitator"><div class="modal"><div class="modal-title" id="fac-modal-title">Add facilitator</div><div class="modal-sub">Set name, contact info, and approved facilities.</div><div class="field-row"><div class="field"><label>Full name <span class="req">*</span></label><input type="text" id="fm-name" placeholder="Full name"></div><div class="field"><label>Email <span class="req">*</span></label><input type="email" id="fm-email" placeholder="email@ltisdschools.org"></div></div><div class="field"><label>Phone</label><input type="tel" id="fm-phone" placeholder="(512) 000-0000"></div><div style="margin-bottom:12px"><div style="font-size:13px;font-weight:500;margin-bottom:8px">Approved facilities <span class="req">*</span></div><div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="selectAllFacilities()">Select all</button><button class="btn btn-ghost btn-sm" onclick="clearAllFacilities()">Clear all</button></div><div id="fac-modal-schools"></div></div><div id="fac-modal-alert"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-facilitator')">Cancel</button><button class="btn btn-primary" id="save-fac-btn" onclick="saveFacilitator()">Save facilitator</button></div></div></div>
-<div class="modal-bg" id="modal-agreement"><div class="modal"><div class="modal-title">LTISD Facility Use Agreement</div><div class="modal-sub">Please read the agreement, then check the box to acknowledge.</div><div class="agreement-scroll"><h3>Preface</h3><p>Lake Travis ISD Board Policies GKD (Legal) and GKD (Local) address Non-School Use of School Facilities. The District shall permit non-school use of designated facilities for educational, recreational, civic, or social activities when these do not conflict with school use or applicable laws, policies, or rules.</p><h3>Application Requirements</h3><p>Applications must be filed no less than 21 days prior to the requested date(s) and no more than 90 days in advance. Not officially booked until signed by the Community Relations Liaison or Director/Assistant Director of Athletics.</p><h3>Scheduling Priorities</h3><p>District educational programs and extracurricular activities always have priority. The Community Relations Liaison or Athletic Director may cancel a scheduled non-school use if an unexpected conflict arises.</p><h3>Rental Costs &amp; Payment</h3><p>Invoices issued monthly after completed events. No deposit required. Payments mailed to: Lake Travis High School &mdash; ATTN: Athletics, 3324 Ranch Road 620 South, Austin, TX 78738. Cancellations within 24 hours incur the full facilitator fee. 6% penalty for payments 30 days past due + 15% administrative/support services penalty.</p><h3>Conditions of Use</h3><p>Use only leased area &middot; Do not exceed capacity &middot; No transfer to third parties &middot; Representative present at all times &middot; No equipment storage &middot; No pets without approval &middot; No smoking, drugs, or alcohol &middot; No open flames or firearms &middot; Comply with all parking rules and applicable laws.</p><h3>Insurance Requirements</h3><p>Commercial General Liability: $1M per occurrence / $1M aggregate. LTISD listed as Additional Insured. Auto Liability: $500K CSL if vehicles on property. Workers' Comp at statutory limits if employees on property.</p><h3>Indemnity</h3><p>Lessee agrees to indemnify and hold harmless Lake Travis ISD, its agents, trustees, officers, and employees from any and all claims arising out of or connected with the use of LTISD facilities.</p></div><div class="agreement-check"><input type="checkbox" id="agree-check" onchange="updateAgreementStatus()"><label for="agree-check">I have read and agree to all terms of the LTISD Facility Use Agreement, including insurance requirements, cancellation policy, and indemnity.</label></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-agreement')">Cancel</button><button class="btn btn-primary" id="agreement-ok-btn" disabled style="opacity:.5;cursor:not-allowed" onclick="acknowledgeAgreement()">I Acknowledge &amp; Continue</button></div></div></div>
-
-<script>
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const API = 'https://script.google.com/macros/s/AKfycbz_Zq5wJYq2FnaABNiwhTFXlnqKUHegOBPhaN5_V_x2bm1Bq4das23JMjzOiVpdXuz3IA/exec';
-const ADMIN_PW = 'LTAdmin';
-const FAC_PW   = 'LTISD1981';
-
-// ── API HELPERS ───────────────────────────────────────────────────────────────
-async function api(params) {
-  const url = API + '?' + new URLSearchParams(params).toString();
+function handleRequest(e) {
+  const params = e.parameter || {};
+  const output = ContentService.createTextOutput();
+  output.setMimeType(ContentService.MimeType.JSON);
   try {
-    const r = await fetch(url);
-    return await r.json();
+    const action = params.action;
+    if      (action === 'ping')              output.setContent(JSON.stringify({status:'ok',message:'LTISD v9 running'}));
+    else if (action === 'check')             output.setContent(JSON.stringify(checkAvailability(params.facility,params.date,params.startTime,params.endTime)));
+    else if (action === 'getFacilitators')   output.setContent(JSON.stringify(getFacilitators()));
+    else if (action === 'saveFacilitator')   output.setContent(JSON.stringify(saveFacilitator(params)));
+    else if (action === 'deleteFacilitator') output.setContent(JSON.stringify(deleteFacilitator(params.id)));
+    else if (action === 'getRentals')        output.setContent(JSON.stringify(getRentals()));
+    else if (action === 'saveRental')        output.setContent(JSON.stringify(saveRental(params)));
+    else if (action === 'updateRental')      output.setContent(JSON.stringify(updateRental(params)));
+    else if (action === 'deleteRental')      output.setContent(JSON.stringify(deleteRental(params.id)));
+    else if (action === 'notify')            output.setContent(JSON.stringify(sendNotifications(params)));
+    else                                     output.setContent(JSON.stringify({error:'Unknown action: '+action}));
   } catch(err) {
-    return { error: err.message };
+    output.setContent(JSON.stringify({error:err.message, stack:err.stack}));
   }
+  return output;
 }
 
-// ── DATA (loaded from Sheets) ─────────────────────────────────────────────────
-let rentals = [], facilitators = [];
-
-async function loadAllData() {
-  const [rResult, fResult] = await Promise.all([
-    api({action:'getRentals'}),
-    api({action:'getFacilitators'})
-  ]);
-  if (rResult.rentals) rentals = rResult.rentals;
-  if (fResult.facilitators) facilitators = fResult.facilitators;
+// ── FACILITATOR CRUD ──────────────────────────────────────────────────────────
+function getFacilitators() {
+  const sheet = getSheet('Facilitators');
+  ensureHeaders(sheet, FAC_HEADERS);
+  if (sheet.getLastRow() <= 1) return { facilitators: [] };
+  const data = sheet.getRange(2, 1, sheet.getLastRow()-1, FAC_HEADERS.length).getValues();
+  const facilitators = data
+    .filter(row => row[0] !== '')
+    .map(row => ({
+      id:         row[0],
+      name:       row[1],
+      email:      row[2],
+      phone:      row[3],
+      facilities: row[4] ? row[4].split('|') : [],
+      createdAt:  row[5]
+    }));
+  return { facilitators };
 }
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-let authState = { role: null, facEmail: null, facName: null, pendingView: null };
+function saveFacilitator(params) {
+  const sheet = getSheet('Facilitators');
+  ensureHeaders(sheet, FAC_HEADERS);
+  const id       = params.id || String(Date.now());
+  const name     = params.name || '';
+  const email    = params.email || '';
+  const phone    = params.phone || '';
+  const facilities = params.facilities || '';
+  const createdAt = params.createdAt || new Date().toISOString();
 
-function gotoAdmin(view, el) {
-  if (authState.role === 'admin') { showView(view, el); return; }
-  authState.pendingView = { id: view, el };
-  document.getElementById('admin-err').style.display = 'none';
-  document.getElementById('admin-pw-input').value = '';
-  document.getElementById('login-admin').style.display = 'flex';
-  setTimeout(() => document.getElementById('admin-pw-input').focus(), 100);
-}
-
-function gotoFacilitator(el) {
-  if (authState.role === 'facilitator') { showView('facilitator', el); return; }
-  authState.pendingView = { id: 'facilitator', el };
-  document.getElementById('fac-err').style.display = 'none';
-  document.getElementById('fac-email-input').value = '';
-  document.getElementById('fac-pw-input').value = '';
-  document.getElementById('login-facilitator').style.display = 'flex';
-  setTimeout(() => document.getElementById('fac-email-input').focus(), 100);
-}
-
-function checkAdminLogin() {
-  if (document.getElementById('admin-pw-input').value === ADMIN_PW) {
-    authState.role = 'admin';
-    document.getElementById('login-admin').style.display = 'none';
-    document.getElementById('logout-btn').style.display = 'inline-block';
-    const pv = authState.pendingView;
-    if (pv) { showView(pv.id, pv.el); authState.pendingView = null; }
-  } else {
-    document.getElementById('admin-err').style.display = 'block';
-  }
-}
-
-async function checkFacLogin() {
-  const email = document.getElementById('fac-email-input').value.trim().toLowerCase();
-  const pw    = document.getElementById('fac-pw-input').value;
-  if (pw !== FAC_PW) { document.getElementById('fac-err').style.display = 'block'; return; }
-
-  // Show loading
-  document.getElementById('fac-login-loading').style.display = 'block';
-  document.getElementById('fac-login-btn').disabled = true;
-
-  // Load facilitators from Sheets to verify
-  const result = await api({action:'getFacilitators'});
-  document.getElementById('fac-login-loading').style.display = 'none';
-  document.getElementById('fac-login-btn').disabled = false;
-
-  if (result.facilitators) facilitators = result.facilitators;
-  const match = facilitators.find(f => f.email.toLowerCase() === email);
-  if (!match) { document.getElementById('fac-err').style.display = 'block'; return; }
-
-  authState.role = 'facilitator';
-  authState.facEmail = email;
-  authState.facName  = match.name;
-  document.getElementById('login-facilitator').style.display = 'none';
-  document.getElementById('logout-btn').style.display = 'inline-block';
-  document.getElementById('fac-logged-in-name').textContent = match.name;
-  const pv = authState.pendingView;
-  if (pv) { showView(pv.id, pv.el); authState.pendingView = null; }
-  loadFacilitatorView();
-}
-
-function logout() {
-  authState = { role: null, facEmail: null, facName: null, pendingView: null };
-  document.getElementById('logout-btn').style.display = 'none';
-  showView('request', document.querySelector('.nav-tab'));
-}
-
-// ── FACILITIES & RATES ────────────────────────────────────────────────────────
-const ALL_FACILITIES = {
-  'Lake Travis High School':['LTHS Cav Stadium','LTHS Round Gym','LTHS Aux Gym','LTHS Competition Gym','LTHS Track Stadium','LTHS Grass Practice Field','LTHS Baseball Field','LTHS Softball Field','LTHS Wrestling Room'],
-  'Bee Cave Middle School':['BCMS Main Gym','BCMS Aux Gym','BCMS Track Field','BCMS Grass'],
-  'Lake Travis Middle School':['LTMS Main Gym','LTMS Aux Gym','LTMS Track Field'],
-  'Hudson Bend Middle School':['HBMS Main Gym','HBMS Aux Gym','HBMS Track Field'],
-  'Elementary Schools':['BCE Gym','LPE Gym','LTE Gym','SHE Gym','RHE Gym','WCHE Gym','LWE Gym']
-};
-const FAC_GRID_IDS = {'Lake Travis High School':'fac-lths','Bee Cave Middle School':'fac-bcms','Lake Travis Middle School':'fac-ltms','Hudson Bend Middle School':'fac-hbms','Elementary Schools':'fac-elem'};
-const FLAT_FACILITIES = Object.values(ALL_FACILITIES).flat();
-const RATE_MAP = {'Gym - Elementary':[26,26,103,155],'Gym - Secondary Main':[26,52,103,206],'Gym - Secondary Aux':[21,41,77,155],'Practice Field - Elementary':[21,21,26,52],'Practice Field - Secondary':[21,21,31,77],'Stadium - SubVarsity No Lights':[31,77,155,309],'Stadium - SubVarsity Lights':[52,103,206,361],'Stadium - Varsity No Lights':[103,180,206,412],'Stadium - Varsity Lights':[129,206,283,489],'Baseball No Lights':[26,52,103,206],'Baseball Lights':[52,77,155,283],'Track Lane':[5,10,15,31]};
-const TIER_INDEX = {'Reduced Level 1':0,'Reduced Level 2':1,'Reduced Level 3':2,'Standard':3};
-const FACILITATOR_RATE=46, CUSTODIAL_RATE=31, LTYA_DISC=0.25;
-const BOOKING_WINDOW = {'LTYA':2,'HS Clubs':2,'Special Olympics':1,'General Public':1};
-
-function getRateKey(f,lights){const fl=f.toLowerCase(),L=lights==='yes';if(fl==='lths cav stadium')return L?'Stadium - Varsity Lights':'Stadium - Varsity No Lights';if(fl==='lths track stadium')return L?'Stadium - SubVarsity Lights':'Stadium - SubVarsity No Lights';if(fl.includes('baseball')||fl.includes('softball'))return L?'Baseball Lights':'Baseball No Lights';if(fl.includes('track field'))return 'Track Lane';if(fl.includes('grass'))return 'Practice Field - Secondary';if(fl==='lths round gym'||fl==='lths competition gym')return 'Gym - Secondary Main';if(fl==='lths aux gym'||fl==='lths wrestling room')return 'Gym - Secondary Aux';if(fl.includes('main gym'))return 'Gym - Secondary Main';if(fl.includes('aux gym'))return 'Gym - Secondary Aux';const ep=['bce','lpe','lte','she','rhe','wche','lwe'];if(ep.some(p=>fl.startsWith(p)))return 'Gym - Elementary';return 'Gym - Secondary Main';}
-function calcPrice(facility,start,end,tierName,lights,custodianHours,group){if(!start||!end)return null;const[sh,sm]=start.split(':').map(Number),[eh,em]=end.split(':').map(Number);const hours=((eh*60+em)-(sh*60+sm))/60;if(hours<=0)return null;const rateKey=getRateKey(facility,lights);const rates=RATE_MAP[rateKey]||[26,52,103,206];const idx=TIER_INDEX[tierName]??3,baseRate=rates[idx];let facilityFee=baseRate*hours,discountAmt=0;if(group==='LTYA'){discountAmt=facilityFee*LTYA_DISC;facilityFee-=discountAmt;}const facilitatorFee=FACILITATOR_RATE*hours;const custodialFee=(parseInt(custodianHours)||0)*CUSTODIAL_RATE;return{hours,baseRate,rateKey,facilityFee,discountAmt,facilitatorFee,custodialFee,total:facilityFee+facilitatorFee+custodialFee};}
-
-let selectedFacility='LTHS Round Gym',selectedGroup='LTYA',selectedTier='tier-2',selectedTierName='Reduced Level 2';
-let agreementAcknowledged=false,pendingRental=null,cancelTargetId=null,editFacilitatorId=null;
-
-// Build facility tiles
-Object.entries(ALL_FACILITIES).forEach(([school,facs])=>{
-  const gridId=FAC_GRID_IDS[school];if(!gridId)return;
-  const grid=document.getElementById(gridId);
-  facs.forEach(f=>{const btn=document.createElement('button');btn.className='facility-tile'+(f===selectedFacility?' selected':'');btn.textContent=f;btn.onclick=()=>{selectFacility(f,btn);updatePricePreview();};grid.appendChild(btn);});
-});
-
-// Month selector
-const invMonth=document.getElementById('inv-month');const now=new Date();
-for(let i=-3;i<=2;i++){const d=new Date(now.getFullYear(),now.getMonth()+i,1);const opt=document.createElement('option');opt.value=d.toISOString().slice(0,7);opt.textContent=d.toLocaleDateString('en-US',{month:'long',year:'numeric'});if(i===-1)opt.selected=true;invMonth.appendChild(opt);}
-
-function showView(id,el){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('view-'+id).classList.add('active');
-  if(el)el.classList.add('active');
-  if(id==='admin')renderAdmin();
-  if(id==='facilitator')loadFacilitatorView();
-  if(id==='roster')renderRoster();
-  if(id==='invoices')renderInvoices();
-}
-function selectGroup(name,tier,tierName,el){selectedGroup=name;selectedTier=tier;selectedTierName=tierName;document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');updateWindowBanner();updateModeSwitcher();updatePricePreview();}
-function updateWindowBanner(){const months=BOOKING_WINDOW[selectedGroup];const today=new Date(),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+months);document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];document.getElementById('r-date').min=today.toISOString().split('T')[0];const extra=selectedGroup==='LTYA'?' &middot; <strong>25% off facility fee</strong>':'';document.getElementById('window-banner').innerHTML='<div class="window-banner">&#128197; <span><strong>'+(months===2?'2 months':'1 month')+' booking window</strong> &middot; '+selectedTierName+extra+' &middot; <span style="color:var(--orange)">Late cancel (within 24 hrs) = facilitator fee owed</span></span></div>';}
-function updateModeSwitcher(){const hasBulk=selectedGroup==='LTYA'||selectedGroup==='HS Clubs';document.getElementById('mode-switcher').style.display=hasBulk?'block':'none';if(!hasBulk)setMode('single');}
-function setMode(mode){document.getElementById('tab-single').classList.toggle('active',mode==='single');document.getElementById('tab-bulk').classList.toggle('active',mode==='bulk');document.getElementById('panel-single').style.display=mode==='single'?'block':'none';document.getElementById('panel-bulk').style.display=mode==='bulk'?'block':'none';}
-function selectFacility(name,el){selectedFacility=name;document.querySelectorAll('.facility-tile').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');const bar=document.getElementById('selected-facility-bar');bar.classList.add('visible');document.getElementById('selected-facility-name').textContent=name;}
-function showAgreementModal(){document.getElementById('agree-check').checked=false;const b=document.getElementById('agreement-ok-btn');b.disabled=true;b.style.opacity='0.5';b.style.cursor='not-allowed';document.getElementById('modal-agreement').classList.add('open');}
-function updateAgreementStatus(){const checked=document.getElementById('agree-check').checked;const b=document.getElementById('agreement-ok-btn');b.disabled=!checked;b.style.opacity=checked?'1':'0.5';b.style.cursor=checked?'pointer':'not-allowed';}
-function acknowledgeAgreement(){agreementAcknowledged=true;closeModal('modal-agreement');const s='<span style="color:var(--green);font-weight:500">&#10003; Agreement acknowledged</span>';document.getElementById('agreement-status').innerHTML=s;if(document.getElementById('bulk-agreement-status'))document.getElementById('bulk-agreement-status').innerHTML=s;const sb=document.getElementById('submit-btn');sb.disabled=false;sb.style.opacity='1';sb.style.cursor='pointer';const bb=document.getElementById('bulk-submit-btn');if(bb){bb.disabled=false;bb.style.opacity='1';bb.style.cursor='pointer';}}
-function updatePricePreview(){const start=document.getElementById('r-start').value,end=document.getElementById('r-end').value,lights=document.getElementById('r-lights').value,cust=document.getElementById('r-custodian').value;const p=calcPrice(selectedFacility,start,end,selectedTierName,lights,cust,selectedGroup);const el=document.getElementById('price-preview');if(!p){el.innerHTML='';return;}el.innerHTML='<div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-top:10px;border-left:3px solid var(--primary)"><div style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Estimated cost &mdash; '+selectedTierName+'</div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+selectedFacility+' &middot; '+p.hours+'h &times; $'+p.baseRate+'/hr'+(p.discountAmt>0?' <span style="color:var(--green);font-size:10px">&minus;25% LTYA</span>':'')+'</span><span>$'+p.facilityFee.toFixed(2)+'</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Facilitator ($46/hr &times; '+p.hours+'h &mdash; incl. open &amp; close)</span><span>$'+p.facilitatorFee.toFixed(2)+'</span></div>'+(p.custodialFee>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Custodial ($31/hr &times; '+parseInt(cust)+'h)</span><span>$'+p.custodialFee.toFixed(2)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;padding:6px 0 0;font-weight:600;font-size:13px;color:var(--black)"><span>Estimated total</span><span>$'+p.total.toFixed(2)+'</span></div><div style="margin-top:6px;padding:5px 9px;background:var(--orange-light);border-radius:6px;font-size:11px;color:var(--orange)">No deposit &middot; Invoiced monthly after events &middot; Late cancel = facilitator fee ($'+p.facilitatorFee.toFixed(2)+') owed</div></div>';}
-
-async function submitRequest(){
-  if(!agreementAcknowledged){showAlert('req-alert','error','Acknowledge the Facility Use Agreement first.');return;}
-  const name=document.getElementById('r-name').value.trim(),email=document.getElementById('r-email').value.trim(),phone=document.getElementById('r-phone').value.trim(),org=document.getElementById('r-org').value.trim(),insurance=document.getElementById('r-insurance').value.trim(),date=document.getElementById('r-date').value,start=document.getElementById('r-start').value,end=document.getElementById('r-end').value,lights=document.getElementById('r-lights').value,custodian=document.getElementById('r-custodian').value;
-  if(!name||!email||!phone||!org||!insurance||!date||!start||!end){showAlert('req-alert','error','Please fill in all required fields.');return;}
-  const today=new Date();today.setHours(0,0,0,0);
-  const reqDate=new Date(date+'T00:00:00'),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+BOOKING_WINDOW[selectedGroup]);
-  if(reqDate<today){showAlert('req-alert','error','Date cannot be in the past.');return;}
-  if(reqDate>maxDate){showAlert('req-alert','error',selectedGroup+' can only book up to '+BOOKING_WINDOW[selectedGroup]+' month(s) in advance.');return;}
-  clearAlert('req-alert');
-  const submitBtn=document.getElementById('submit-btn');submitBtn.disabled=true;submitBtn.style.opacity='0.7';
-  showAlert('req-alert','info','<span class="checking-spinner">Checking live calendars...</span>');
-  const calResult=await api({action:'check',facility:selectedFacility,date,startTime:start,endTime:end});
-  submitBtn.disabled=false;submitBtn.style.opacity='1';clearAlert('req-alert');
-  const p=calcPrice(selectedFacility,start,end,selectedTierName,lights,custodian,selectedGroup);
-  pendingRental={id:String(Date.now()),name,email,phone,org,insurance,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:selectedFacility,date,start,end,lights,custodianHours:parseInt(custodian)||0,attendance:document.getElementById('r-attendance').value,activity:document.getElementById('r-activity').value,status:'pending',facilitator:'',facilitatorId:'',price:p?p.total:0,facilityFee:p?p.facilityFee:0,facilitatorFee:p?p.facilitatorFee:0,custodialFee:p?p.custodialFee:0,discountAmt:p?p.discountAmt:0,rateKey:p?p.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
-  if(calResult.error&&calResult.available==null){showModal2('Calendar check unavailable',selectedFacility+' &middot; '+fmtDate(date),'<div class="alert alert-warning">&#9888;&#65039; Could not reach the live calendar. You may proceed but admin will need to verify manually.</div>',true);return;}
-  if(!calResult.available){const cl=(calResult.conflicts||[]).map(c=>'<div style="padding:5px 0;border-bottom:1px solid var(--gray-200);font-size:12px">&bull; '+c.message+'</div>').join('');showModal2('Not available',selectedFacility+' on '+fmtDate(date)+' has conflicts.','<div class="alert alert-error"><strong>This date is not available.</strong></div><div style="margin-top:10px">'+cl+'</div>',false);return;}
-  const approvedFacs=facilitators.filter(f=>f.facilities&&f.facilities.includes(selectedFacility));
-  const facNote=approvedFacs.length>0?'<div style="margin-top:8px;padding:6px 10px;background:var(--green-light);border-radius:6px;font-size:12px;color:var(--green)">&#9993;&#65039; '+approvedFacs.length+' facilitator'+(approvedFacs.length>1?'s':'')+' will be emailed.</div>':'<div style="margin-top:8px;padding:6px 10px;background:var(--orange-light);border-radius:6px;font-size:12px;color:var(--orange)">&#9888;&#65039; No facilitators approved for this facility. Admin will be alerted.</div>';
-  const priceHtml=p?'<div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-top:10px;font-size:12px;border-left:3px solid var(--primary)"><div style="font-weight:600;margin-bottom:5px;color:var(--black)">Cost (invoiced after event)</div><div style="display:flex;justify-content:space-between;padding:3px 0"><span>Facility fee'+(p.discountAmt>0?' (&minus;25% LTYA)':'')+'</span><span>$'+p.facilityFee.toFixed(2)+'</span></div><div style="display:flex;justify-content:space-between;padding:3px 0"><span>Facilitator (incl. open &amp; close)</span><span>$'+p.facilitatorFee.toFixed(2)+'</span></div>'+(p.custodialFee>0?'<div style="display:flex;justify-content:space-between;padding:3px 0"><span>Custodial</span><span>$'+p.custodialFee.toFixed(2)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;padding:5px 0 0;font-weight:600;border-top:1px solid var(--gray-300);color:var(--black)"><span>Total</span><span>$'+p.total.toFixed(2)+'</span></div></div>':'';
-  showModal2('&#10003; Available &mdash; live calendar confirmed',selectedFacility+' &middot; '+fmtDate(date)+' &middot; '+start+'&ndash;'+end,'<div class="alert alert-success"><strong>No conflicts on your Google Calendar.</strong> Not scheduled until a facilitator claims it.</div>'+priceHtml+facNote,true);
-}
-
-async function confirmRental(){
-  if(!pendingRental)return;
-  pendingRental.status='confirmed';
-  closeModal('modal-avail');
-  showAlert('req-alert','info','<span class="checking-spinner">Saving rental &amp; notifying facilitators...</span>');
-  const saveResult = await api({action:'saveRental',...pendingRental});
-  if(saveResult.success){
-    rentals.push({...pendingRental});
-    // Send email notifications
-    const approved=facilitators.filter(f=>f.facilities&&f.facilities.includes(pendingRental.facility));
-    if(approved.length){
-      await api({action:'notify',facility:pendingRental.facility,date:pendingRental.date,startTime:pendingRental.start,endTime:pendingRental.end,group:pendingRental.group,contactName:pendingRental.name,contactEmail:pendingRental.email,activity:pendingRental.activity||'',facilitators:JSON.stringify(approved)});
+  // Check if updating existing
+  if (params.id && sheet.getLastRow() > 1) {
+    const data = sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues();
+    for (let i=0; i<data.length; i++) {
+      if (String(data[i][0]) === String(params.id)) {
+        sheet.getRange(i+2, 1, 1, FAC_HEADERS.length).setValues([[id,name,email,phone,facilities,createdAt]]);
+        return { success: true, id, action: 'updated' };
+      }
     }
-    clearAlert('req-alert');
-    showAlert('req-alert','success','Confirmed for '+fmtDate(pendingRental.date)+' at '+pendingRental.facility+'. Facilitators notified by email.');
-  } else {
-    clearAlert('req-alert');
-    showAlert('req-alert','error','Could not save rental: '+(saveResult.error||'Unknown error'));
   }
-  pendingRental=null;
+  // New facilitator
+  sheet.appendRow([id, name, email, phone, facilities, createdAt]);
+  return { success: true, id, action: 'created' };
 }
 
-function handleFileSelect(e){const r=new FileReader();r.onload=ev=>document.getElementById('csv-paste').value=ev.target.result;r.readAsText(e.target.files[0]);}
-function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');const r=new FileReader();r.onload=ev=>document.getElementById('csv-paste').value=ev.target.result;r.readAsText(e.dataTransfer.files[0]);}
+function deleteFacilitator(id) {
+  const sheet = getSheet('Facilitators');
+  if (sheet.getLastRow() <= 1) return { success: false, error: 'Not found' };
+  const data = sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues();
+  for (let i=0; i<data.length; i++) {
+    if (String(data[i][0]) === String(id)) {
+      sheet.deleteRow(i+2);
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'Not found' };
+}
 
-async function processBulk(){
-  if(!agreementAcknowledged){showAlert('req-alert','error','Acknowledge the agreement first.');return;}
-  const name=document.getElementById('r-name').value.trim(),email=document.getElementById('r-email').value.trim(),insurance=document.getElementById('r-insurance').value.trim(),org=document.getElementById('r-org').value.trim();
-  if(!name||!email||!insurance||!org){showAlert('req-alert','error','Fill in contact info first.');return;}
-  const raw=document.getElementById('csv-paste').value.trim();if(!raw){showAlert('req-alert','error','Paste CSV data or upload a file.');return;}
-  const today=new Date();today.setHours(0,0,0,0);const maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+BOOKING_WINDOW[selectedGroup]);
-  const rows=[];
-  raw.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#')).forEach((line,idx)=>{
-    const pts=line.split(',').map(s=>s.trim());if(pts.length<4){rows.push({line:idx+1,raw:line,status:'error',reason:'Need: facility, date, start, end'});return;}
-    const[facRaw,date,start,end,lights='no',custHrs='0',...actParts]=pts;
-    const facility=FLAT_FACILITIES.find(f=>f.toLowerCase()===facRaw.toLowerCase());
-    if(!facility){rows.push({line:idx+1,raw:line,status:'error',reason:'Unknown facility: "'+facRaw+'"'});return;}
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){rows.push({line:idx+1,facility,date,status:'error',reason:'Date must be YYYY-MM-DD'});return;}
-    const reqDate=new Date(date+'T00:00:00');
-    if(reqDate<today){rows.push({line:idx+1,facility,date,start,end,status:'error',reason:'Date is in the past'});return;}
-    if(reqDate>maxDate){rows.push({line:idx+1,facility,date,start,end,status:'error',reason:'Outside '+BOOKING_WINDOW[selectedGroup]+'-month window'});return;}
-    rows.push({line:idx+1,facility,date,start,end,lights,custHrs,activity:actParts.join(',').trim(),status:'pending_check'});
+// ── RENTAL CRUD ───────────────────────────────────────────────────────────────
+function getRentals() {
+  const sheet = getSheet('Rentals');
+  ensureHeaders(sheet, RENTAL_HEADERS);
+  if (sheet.getLastRow() <= 1) return { rentals: [] };
+  const data = sheet.getRange(2, 1, sheet.getLastRow()-1, RENTAL_HEADERS.length).getValues();
+  const rentals = data
+    .filter(row => row[0] !== '')
+    .map(row => {
+      const obj = {};
+      RENTAL_HEADERS.forEach((h,i) => {
+        obj[h] = row[i] === '' ? null : row[i];
+      });
+      // Parse numeric fields
+      ['price','facilityFee','facilitatorFee','custodialFee','discountAmt','custodianHours'].forEach(f => {
+        if (obj[f] !== null) obj[f] = Number(obj[f]) || 0;
+      });
+      return obj;
+    });
+  return { rentals };
+}
+
+function saveRental(params) {
+  const sheet = getSheet('Rentals');
+  ensureHeaders(sheet, RENTAL_HEADERS);
+  const row = RENTAL_HEADERS.map(h => params[h] !== undefined ? params[h] : '');
+  sheet.appendRow(row);
+  return { success: true, id: params.id };
+}
+
+function updateRental(params) {
+  const sheet = getSheet('Rentals');
+  if (sheet.getLastRow() <= 1) return { success: false, error: 'Not found' };
+  const data = sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues();
+  for (let i=0; i<data.length; i++) {
+    if (String(data[i][0]) === String(params.id)) {
+      // Get existing row first
+      const existing = sheet.getRange(i+2, 1, 1, RENTAL_HEADERS.length).getValues()[0];
+      const existingObj = {};
+      RENTAL_HEADERS.forEach((h,idx) => existingObj[h] = existing[idx]);
+      // Merge with updates
+      Object.keys(params).forEach(k => { if (k !== 'action') existingObj[k] = params[k]; });
+      const row = RENTAL_HEADERS.map(h => existingObj[h] !== undefined ? existingObj[h] : '');
+      sheet.getRange(i+2, 1, 1, RENTAL_HEADERS.length).setValues([row]);
+      return { success: true };
+    }
+  }
+  return { success: false, error: 'Not found' };
+}
+
+function deleteRental(id) {
+  const sheet = getSheet('Rentals');
+  if (sheet.getLastRow() <= 1) return { success: false };
+  const data = sheet.getRange(2,1,sheet.getLastRow()-1,1).getValues();
+  for (let i=0; i<data.length; i++) {
+    if (String(data[i][0]) === String(id)) {
+      sheet.deleteRow(i+2);
+      return { success: true };
+    }
+  }
+  return { success: false };
+}
+
+// ── EMAIL NOTIFICATIONS ───────────────────────────────────────────────────────
+function sendNotifications(params) {
+  const facility=params.facility, date=params.date, startTime=params.startTime, endTime=params.endTime;
+  const group=params.group, contactName=params.contactName, contactEmail=params.contactEmail;
+  const activity=params.activity||'Not specified';
+  if (!facility||!date||!params.facilitators) return {error:'Missing params'};
+  let facilitators=[];
+  try { facilitators=JSON.parse(params.facilitators); } catch(e) { return {error:'Invalid JSON'}; }
+  const approved=facilitators.filter(f=>f.facilities&&f.facilities.includes(facility));
+
+  if (!approved.length) {
+    try {
+      GmailApp.sendEmail(ADMIN_EMAIL,
+        '[LTISD Rentals] No facilitator assigned — '+facility+' on '+date,
+        'A rental was confirmed but no facilitators are approved for this facility.\n\nFacility: '+facility+'\nDate: '+date+'\nTime: '+startTime+' - '+endTime+'\nGroup: '+group+'\nContact: '+contactName+' ('+contactEmail+')\n\nPlease assign a facilitator in the Facilitator Roster tab.\n\n'+FACILITATOR_PORTAL,
+        {name:'LTISD Athletics Rentals'});
+    } catch(e) {}
+    return {sent:0, message:'No facilitators approved. Admin notified.'};
+  }
+
+  const [yr,mo,dy]=date.split('-');
+  const niceDate=new Date(yr,mo-1,dy).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+  let sent=0;
+
+  approved.forEach(fac => {
+    try {
+      GmailApp.sendEmail(fac.email,
+        '[LTISD Rentals] New rental to claim — '+facility+' on '+niceDate,
+        'Hello '+fac.name+',\n\nA new facility rental needs a facilitator. You are approved for this facility.\n\nRENTAL DETAILS\n--------------\nFacility:  '+facility+'\nDate:      '+niceDate+'\nTime:      '+startTime+' - '+endTime+'\nGroup:     '+group+'\nContact:   '+contactName+' ('+contactEmail+')\nActivity:  '+activity+'\n\nHOW TO CLAIM\n------------\n1. Go to: '+FACILITATOR_PORTAL+'\n2. Click Facilitator Portal\n3. Enter your email ('+fac.email+') and password: LTISD1981\n4. Click "Claim & schedule"\n\nNot officially scheduled until a facilitator claims it.\n\nQuestions? Contact '+ADMIN_EMAIL+'\n\n-- LTISD Athletics',
+        {from:ADMIN_EMAIL, name:'LTISD Athletics Rentals'});
+      sent++;
+    } catch(err) {}
   });
-  showAlert('req-alert','info','<span class="checking-spinner">Checking '+rows.filter(r=>r.status==='pending_check').length+' dates against live calendars...</span>');
-  for(const row of rows){
-    if(row.status!=='pending_check')continue;
-    const cal=await api({action:'check',facility:row.facility,date:row.date,startTime:row.start,endTime:row.end});
-    if(cal.available===true)row.status='available';
-    else if(cal.available===false){row.status='unavailable';row.reason=(cal.conflicts||[]).map(c=>c.message).join(' &middot; ');}
-    else{row.status='available';row.calWarning='Calendar unreachable &mdash; verify manually';}
-    row.price=calcPrice(row.facility,row.start,row.end,selectedTierName,row.lights,row.custHrs,selectedGroup);
-    row.name=name;row.email=email;row.org=org;row.insurance=insurance;
-  }
-  clearAlert('req-alert');
-  showAlert('req-alert','info','<span class="checking-spinner">Saving confirmed rentals...</span>');
-  let confirmed=0;
-  for(const r of rows){
-    if(r.status!=='available')continue;
-    const rental={id:String(Date.now()+Math.random()),name:r.name,email:r.email,phone:'',org:r.org,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:r.facility,date:r.date,start:r.start,end:r.end,lights:r.lights,custodianHours:parseInt(r.custHrs)||0,insurance:r.insurance,activity:r.activity,status:'confirmed',facilitator:'',facilitatorId:'',price:r.price?r.price.total:0,facilityFee:r.price?r.price.facilityFee:0,facilitatorFee:r.price?r.price.facilitatorFee:0,custodialFee:r.price?r.price.custodialFee:0,discountAmt:r.price?r.price.discountAmt:0,rateKey:r.price?r.price.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
-    const saveResult=await api({action:'saveRental',...rental});
-    if(saveResult.success){rentals.push(rental);confirmed++;}
-  }
-  clearAlert('req-alert');
-  const av=rows.filter(r=>r.status==='available').length,un=rows.filter(r=>r.status==='unavailable').length,er=rows.filter(r=>r.status==='error').length;
-  let html='<div class="card"><div class="card-title">Results</div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><span class="bulk-badge bulk-ok">'+av+' confirmed</span><span class="bulk-badge bulk-warn">'+un+' unavailable</span><span class="bulk-badge bulk-err">'+er+' errors</span></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Facility</th><th>Date</th><th>Time</th><th>Est. total</th><th>Result</th></tr></thead><tbody>';
-  rows.forEach(r=>{const badge=r.status==='available'?'<span class="bulk-badge bulk-ok">Confirmed</span>':r.status==='unavailable'?'<span class="bulk-badge bulk-warn">Unavailable</span>':'<span class="bulk-badge bulk-err">Error</span>';html+='<tr><td style="color:var(--gray-400)">'+r.line+'</td><td>'+(r.facility||r.raw||'&mdash;')+'</td><td>'+(r.date?fmtDate(r.date):'&mdash;')+'</td><td>'+(r.start&&r.end?r.start+'&ndash;'+r.end:'&mdash;')+'</td><td>'+(r.price?'$'+r.price.total.toFixed(2):'&mdash;')+'</td><td>'+badge+(r.reason?'<br><span style="font-size:11px;color:var(--gray-600)">'+r.reason+'</span>':'')+(r.calWarning?'<br><span style="font-size:10px;color:var(--orange)">&#9888;&#65039; '+r.calWarning+'</span>':'')+'</td></tr>';});
-  html+='</tbody></table></div></div>';document.getElementById('bulk-results').innerHTML=html;
-  if(confirmed>0)showAlert('req-alert','success',confirmed+' rental(s) confirmed and saved.');
+
+  try {
+    GmailApp.sendEmail(ADMIN_EMAIL,
+      '[LTISD Rentals] New rental confirmed — '+facility+' on '+date,
+      'Rental confirmed. Facilitator notifications sent.\n\nFacility: '+facility+'\nDate: '+date+'\nTime: '+startTime+' - '+endTime+'\nGroup: '+group+'\nContact: '+contactName+' ('+contactEmail+')\n\nNotified '+sent+' facilitator(s):\n'+approved.map(f=>'- '+f.name+' ('+f.email+')').join('\n')+'\n\nView rentals: '+FACILITATOR_PORTAL,
+      {name:'LTISD Athletics Rentals'});
+  } catch(e) {}
+
+  return { sent, notified: approved.map(f=>f.name) };
 }
 
-async function loadFacilitatorView(){
-  const list=document.getElementById('fac-list');
-  if(!authState.facEmail){list.innerHTML='<div class="empty">Not signed in.</div>';return;}
-  const fac=facilitators.find(f=>f.email.toLowerCase()===authState.facEmail);
-  if(!fac){list.innerHTML='<div class="empty">Facilitator not found.</div>';return;}
-  document.getElementById('fac-approved-summary').innerHTML='<span style="font-size:12px;color:var(--gray-600)">Approved for <strong>'+fac.facilities.length+'</strong> facilit'+(fac.facilities.length===1?'y':'ies')+'</span>';
-  list.innerHTML='<div class="checking-spinner" style="padding:20px">Loading rentals...</div>';
-  // Refresh rentals from Sheets
-  const result=await api({action:'getRentals'});
-  if(result.rentals)rentals=result.rentals;
-  const open=rentals.filter(r=>r.status==='confirmed'&&fac.facilities.includes(r.facility));
-  if(!open.length){list.innerHTML='<div class="empty"><div class="empty-icon">&#127979;</div>No open rentals at your approved facilities right now.</div>';return;}
-  list.innerHTML=open.map(r=>'<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--gray-200);gap:12px"><div style="flex:1"><div style="font-size:14px;font-weight:500;color:var(--black)">'+fmtDate(r.date)+' &middot; '+r.start+'&ndash;'+r.end+'</div><div style="font-size:12px;color:var(--gray-600)">'+r.facility+'</div><div style="font-size:12px;color:var(--gray-600)">Group: <strong>'+r.group+'</strong> &middot; '+r.name+'</div>'+(r.facilitatorFee?'<div style="font-size:12px;color:var(--green);font-weight:500;margin-top:2px">Your pay: $'+Number(r.facilitatorFee).toFixed(2)+' (incl. open &amp; close)</div>':'')+'</div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px"><span class="awaiting-pill">Needs facilitator</span><button class="btn btn-success btn-sm" onclick="claimRental(\''+r.id+'\')">Claim &amp; schedule</button></div></div>').join('');
+// ── CALENDAR CHECK ────────────────────────────────────────────────────────────
+const LTISD_CAMPUSES = {
+  lths:['lths','lake travis hs','lake travis high','cavalier'],
+  bcms:['bcms','bee cave ms','bee cave middle'],
+  ltms:['ltms','lake travis ms','lake travis middle'],
+  hbms:['hbms','hudson bend ms','hudson bend middle'],
+  bce:['bce','bee cave elem','bee cave elementary'],
+  lpe:['lpe','lake pointe','lake pointe elementary'],
+  lte:['lte','lake travis elem','lake travis elementary'],
+  she:['she','serene hills','serene hills elementary'],
+  rhe:['rhe','rough hollow','rough hollow elementary'],
+  wche:['wche','west cypress','west cypress hills'],
+  lwe:['lwe','lakeway elem','lakeway elementary'],
+};
+const ALL_LTISD_KEYWORDS = Object.values(LTISD_CAMPUSES).flat();
+const FACILITY_CAMPUS = {
+  'LTHS Cav Stadium':LTISD_CAMPUSES.lths,'LTHS Round Gym':LTISD_CAMPUSES.lths,
+  'LTHS Aux Gym':LTISD_CAMPUSES.lths,'LTHS Competition Gym':LTISD_CAMPUSES.lths,
+  'LTHS Track Stadium':LTISD_CAMPUSES.lths,'LTHS Grass Practice Field':LTISD_CAMPUSES.lths,
+  'LTHS Baseball Field':LTISD_CAMPUSES.lths,'LTHS Softball Field':LTISD_CAMPUSES.lths,
+  'LTHS Wrestling Room':LTISD_CAMPUSES.lths,
+  'BCMS Main Gym':LTISD_CAMPUSES.bcms,'BCMS Aux Gym':LTISD_CAMPUSES.bcms,
+  'BCMS Track Field':LTISD_CAMPUSES.bcms,'BCMS Grass':LTISD_CAMPUSES.bcms,
+  'LTMS Main Gym':LTISD_CAMPUSES.ltms,'LTMS Aux Gym':LTISD_CAMPUSES.ltms,'LTMS Track Field':LTISD_CAMPUSES.ltms,
+  'HBMS Main Gym':LTISD_CAMPUSES.hbms,'HBMS Aux Gym':LTISD_CAMPUSES.hbms,'HBMS Track Field':LTISD_CAMPUSES.hbms,
+  'BCE Gym':LTISD_CAMPUSES.bce,'LPE Gym':LTISD_CAMPUSES.lpe,'LTE Gym':LTISD_CAMPUSES.lte,
+  'SHE Gym':LTISD_CAMPUSES.she,'RHE Gym':LTISD_CAMPUSES.rhe,
+  'WCHE Gym':LTISD_CAMPUSES.wche,'LWE Gym':LTISD_CAMPUSES.lwe,
+};
+
+function checkAvailability(facility,dateStr,startTime,endTime) {
+  if(!facility||!dateStr||!startTime||!endTime) return {error:'Missing params'};
+  const start=new Date(dateStr+'T'+startTime+':00'), end=new Date(dateStr+'T'+endTime+':00');
+  if(isNaN(start)||isNaN(end)) return {error:'Invalid date/time'};
+  const campusKeys=FACILITY_CAMPUS[facility]||[], conflicts=[];
+  try {
+    const cal=CalendarApp.getCalendarById(ATHLETIC_CALENDAR_ID);
+    if(cal) cal.getEvents(start,end).forEach(ev=>{
+      const title=ev.getTitle(), r=isBlocked(title.toLowerCase(),campusKeys);
+      if(!r.blocked) return;
+      conflicts.push({type:'athletic_event',title,start:ev.getStartTime().toISOString(),end:ev.getEndTime().toISOString(),message:r.reason+': '+title});
+    });
+  } catch(err) { conflicts.push({type:'warning',message:'Athletic calendar: '+err.message}); }
+  try {
+    const cal=CalendarApp.getCalendarById(RENTAL_CALENDAR_ID);
+    if(cal) cal.getEvents(start,end).forEach(ev=>{
+      const t=ev.getTitle().toLowerCase(), k=extractKeyword(facility.toLowerCase());
+      if(t.includes(k)||t.includes(facility.toLowerCase()))
+        conflicts.push({type:'rental_conflict',title:ev.getTitle(),start:ev.getStartTime().toISOString(),end:ev.getEndTime().toISOString(),message:'Already booked: '+ev.getTitle()});
+    });
+  } catch(err) { conflicts.push({type:'warning',message:'Rental calendar: '+err.message}); }
+  return {available:conflicts.filter(c=>c.type!=='warning').length===0,facility,date:dateStr,start:startTime,end:endTime,conflicts};
 }
 
-async function claimRental(rentalId){
-  if(!authState.facEmail){showAlert('fac-alert','error','Not signed in.');return;}
-  const fac=facilitators.find(f=>f.email.toLowerCase()===authState.facEmail);
-  if(!fac){showAlert('fac-alert','error','Facilitator not found.');return;}
-  const r=rentals.find(x=>String(x.id)===String(rentalId));if(!r)return;
-  if(!fac.facilities.includes(r.facility)){showAlert('fac-alert','error','You are not approved for this facility.');return;}
-  showAlert('fac-alert','info','<span class="checking-spinner">Claiming rental...</span>');
-  const result=await api({action:'updateRental',id:rentalId,status:'scheduled',facilitator:fac.name,facilitatorId:String(fac.id)});
-  if(result.success){
-    r.status='scheduled';r.facilitator=fac.name;r.facilitatorId=String(fac.id);
-    clearAlert('fac-alert');
-    showAlert('fac-alert','success','Claimed: '+fmtDate(r.date)+' at '+r.facility+'. Now officially scheduled.');
-    loadFacilitatorView();
-  } else {
-    clearAlert('fac-alert');
-    showAlert('fac-alert','error','Could not claim rental: '+(result.error||'Unknown error'));
-  }
+function isBlocked(t,campusKeys) {
+  const hasAt=t.includes('@'), hasVs=t.includes(' vs ')||t.includes(' vs.');
+  if(hasAt){const i=t.indexOf('@'),after=t.substring(i+1).trim();const hostLtisd=ALL_LTISD_KEYWORDS.some(k=>after.includes(k));if(!hostLtisd)return{blocked:false,reason:'Away at non-LTISD'};if(campusKeys.some(k=>after.includes(k)))return{blocked:true,reason:'Home game'};return{blocked:false,reason:'Different LTISD campus'};}
+  if(hasVs){const i=t.search(/ vs\.? /),before=t.substring(0,i).trim();if(campusKeys.some(k=>before.includes(k)))return{blocked:true,reason:'Home game (vs)'};return{blocked:false,reason:'Different campus'};}
+  if(campusKeys.some(k=>t.includes(k)))return{blocked:true,reason:'Campus event'};
+  return{blocked:false,reason:'No match'};
 }
 
-async function renderRoster(){
-  const list=document.getElementById('roster-list');
-  list.innerHTML='<div class="checking-spinner" style="padding:20px">Loading facilitators...</div>';
-  const result=await api({action:'getFacilitators'});
-  if(result.facilitators)facilitators=result.facilitators;
-  if(!facilitators.length){list.innerHTML='<div class="empty"><div class="empty-icon">&#128100;</div>No facilitators yet. Add one to get started.</div>';return;}
-  list.innerHTML=facilitators.map(f=>'<div class="fac-card"><div class="fac-card-header"><div><div class="fac-name-badge">'+f.name+'</div><div class="fac-email">'+f.email+(f.phone?' &middot; '+f.phone:'')+'</div></div><div style="display:flex;align-items:center;gap:7px"><span class="fac-count">'+f.facilities.length+' facilit'+(f.facilities.length===1?'y':'ies')+'</span><button class="btn btn-ghost btn-sm" onclick="openEditFacilitator(\''+f.id+'\')">Edit</button><button class="btn-danger-sm" onclick="removeFacilitator(\''+f.id+'\')">Remove</button></div></div><div class="fac-facilities-wrap">'+f.facilities.map(fac=>'<span class="fac-fac-tag">'+fac+'</span>').join('')+(f.facilities.length===0?'<span style="font-size:12px;color:var(--orange)">&#9888;&#65039; No facilities assigned</span>':'')+'</div></div>').join('');
+function extractKeyword(name) {
+  const skip=['gym','field','track','the','and','lths','bcms','ltms','hbms','main','aux'];
+  for(const w of name.split(' ')){if(w.length>2&&!skip.includes(w))return w;}
+  return name.split(' ')[0]||name;
 }
 
-function openAddFacilitator(){editFacilitatorId=null;document.getElementById('fac-modal-title').textContent='Add facilitator';document.getElementById('fm-name').value='';document.getElementById('fm-email').value='';document.getElementById('fm-phone').value='';buildFacilityCheckboxes([]);clearAlert('fac-modal-alert');document.getElementById('modal-facilitator').classList.add('open');}
-function openEditFacilitator(id){const f=facilitators.find(x=>String(x.id)===String(id));if(!f)return;editFacilitatorId=id;document.getElementById('fac-modal-title').textContent='Edit facilitator';document.getElementById('fm-name').value=f.name;document.getElementById('fm-email').value=f.email;document.getElementById('fm-phone').value=f.phone||'';buildFacilityCheckboxes(f.facilities);clearAlert('fac-modal-alert');document.getElementById('modal-facilitator').classList.add('open');}
-function buildFacilityCheckboxes(sel){const c=document.getElementById('fac-modal-schools');c.innerHTML='';Object.entries(ALL_FACILITIES).forEach(([school,facs])=>{const s=document.createElement('div');s.className='fac-check-section';s.innerHTML='<div class="fac-check-label">'+school+'</div><div class="fac-check-grid">'+facs.map(f=>'<label class="fac-check-item'+(sel.includes(f)?' checked':'')+'"><input type="checkbox" value="'+f+'" '+(sel.includes(f)?'checked':'')+' onchange="this.closest(\'label\').classList.toggle(\'checked\',this.checked)">'+f+'</label>').join('')+'</div>';c.appendChild(s);});}
-function selectAllFacilities(){document.querySelectorAll('#fac-modal-schools input[type=checkbox]').forEach(cb=>{cb.checked=true;cb.closest('label').classList.add('checked');});}
-function clearAllFacilities(){document.querySelectorAll('#fac-modal-schools input[type=checkbox]').forEach(cb=>{cb.checked=false;cb.closest('label').classList.remove('checked');});}
-
-async function saveFacilitator(){
-  const name=document.getElementById('fm-name').value.trim(),email=document.getElementById('fm-email').value.trim(),phone=document.getElementById('fm-phone').value.trim();
-  if(!name||!email){showAlert('fac-modal-alert','error','Name and email are required.');return;}
-  const sel=[...document.querySelectorAll('#fac-modal-schools input[type=checkbox]:checked')].map(cb=>cb.value);
-  if(!sel.length){showAlert('fac-modal-alert','error','Assign at least one facility.');return;}
-  const btn=document.getElementById('save-fac-btn');btn.disabled=true;btn.textContent='Saving...';
-  const id=editFacilitatorId||String(Date.now());
-  const result=await api({action:'saveFacilitator',id,name,email,phone,facilities:sel.join('|'),createdAt:new Date().toISOString()});
-  btn.disabled=false;btn.textContent='Save facilitator';
-  if(result.success){
-    closeModal('modal-facilitator');
-    showAlert('roster-alert','success',(editFacilitatorId?'Updated':'Added')+' facilitator: '+name);
-    renderRoster();
-  } else {
-    showAlert('fac-modal-alert','error','Could not save: '+(result.error||'Unknown error'));
-  }
+function testScript() {
+  Logger.log('=== v9 Test ===');
+  // Test facilitator save/get
+  const saveResult = saveFacilitator({id:'test123',name:'Test User',email:'test@ltisdschools.org',phone:'512-555-0000',facilities:'LTHS Round Gym|LTHS Aux Gym',createdAt:new Date().toISOString()});
+  Logger.log('Save facilitator: '+JSON.stringify(saveResult));
+  const getResult = getFacilitators();
+  Logger.log('Get facilitators: '+getResult.facilitators.length+' found');
+  // Clean up test
+  deleteFacilitator('test123');
+  Logger.log('Cleanup done');
+  // Test calendar
+  const d=new Date();d.setDate(d.getDate()+14);
+  const dateStr=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const cal=checkAvailability('LTHS Round Gym',dateStr,'09:00','12:00');
+  Logger.log('Calendar check: available='+cal.available);
+  Logger.log('=== Done ===');
 }
-
-async function removeFacilitator(id){
-  if(!confirm('Remove this facilitator?'))return;
-  const result=await api({action:'deleteFacilitator',id:String(id)});
-  if(result.success){facilitators=facilitators.filter(f=>String(f.id)!==String(id));showAlert('roster-alert','success','Facilitator removed.');renderRoster();}
-  else showAlert('roster-alert','error','Could not remove facilitator.');
-}
-
-function renderAdmin(){
-  const fs=document.getElementById('filter-status').value,fg=document.getElementById('filter-group').value;
-  let data=rentals.filter(r=>(!fs||r.status===fs)&&(!fg||r.group===fg));
-  data.sort((a,b)=>new Date(a.date)-new Date(b.date));
-  const scheduled=rentals.filter(r=>r.status==='scheduled');
-  document.getElementById('admin-stats').innerHTML='<div class="stat-card"><div class="stat-num">'+rentals.length+'</div><div class="stat-label">Total requests</div></div><div class="stat-card"><div class="stat-num" style="color:var(--purple)">'+scheduled.length+'</div><div class="stat-label">Scheduled &#10003;</div></div><div class="stat-card"><div class="stat-num" style="color:var(--green)">$'+scheduled.reduce((s,r)=>s+(Number(r.price)||0),0).toFixed(0)+'</div><div class="stat-label">Scheduled revenue</div></div><div class="stat-card"><div class="stat-num" style="color:var(--orange)">'+rentals.filter(r=>r.status==='confirmed').length+'</div><div class="stat-label">Awaiting facilitator</div></div>';
-  const tbody=document.getElementById('admin-table'),empty=document.getElementById('admin-empty');
-  if(!data.length){tbody.innerHTML='';empty.style.display='block';return;}
-  empty.style.display='none';
-  tbody.innerHTML=data.map(r=>{
-    const isCan=r.status==='cancelled'||r.status==='late-cancel';
-    const rowBg=r.status==='late-cancel'?'background:#fff5f5':r.status==='cancelled'?'background:#fafafa':'';
-    const approvedForFac=facilitators.filter(f=>f.facilities&&f.facilities.includes(r.facility));
-    const facCell=r.facilitator?'<strong>'+r.facilitator+'</strong>':approvedForFac.length>0?'<span style="color:var(--blue);font-size:11px">'+approvedForFac.map(f=>f.name).join(', ')+'</span><br><span style="color:var(--orange);font-size:10px">not yet claimed</span>':'<span style="color:var(--primary);font-size:11px">No facilitators approved</span>';
-    return'<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong><br><span style="font-size:11px;color:var(--gray-400)">'+r.start+'&ndash;'+r.end+'</span></td><td style="font-size:12px">'+r.facility+'</td><td><span class="tier-badge '+(r.tier||'tier-4')+'" style="font-size:11px">'+r.group+'</span></td><td style="font-size:12px">'+r.name+'<br><span style="color:var(--gray-400);font-size:11px">'+r.email+'</span></td><td style="font-size:12px">'+facCell+'</td><td style="font-size:12px">'+(r.facilityFee?'$'+Number(r.facilityFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px">'+(r.facilitatorFee&&r.status!=='cancelled'?'$'+Number(r.facilitatorFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px">'+(r.custodialFee&&Number(r.custodialFee)>0?'$'+Number(r.custodialFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px;font-weight:600;color:var(--black)">'+(r.price&&Number(r.price)>0?'$'+Number(r.price).toFixed(2):r.status==='cancelled'?'<span style="color:var(--gray-400)">No charge</span>':'&mdash;')+'</td><td>'+statusBadge(r.status)+'</td><td style="display:flex;flex-direction:column;gap:4px">'+(!isCan?'<button class="btn-danger-sm" onclick="promptCancel(\''+r.id+'\')">Cancel</button>':'')+'<button style="background:none;border:1px solid var(--gray-300);font-family:var(--font);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--gray-600)" onclick="deleteRental(\''+r.id+'\')">Remove</button></td></tr>';
-  }).join('');
-}
-
-async function deleteRental(id){if(!confirm('Remove this rental record?'))return;const result=await api({action:'deleteRental',id:String(id)});if(result.success){rentals=rentals.filter(r=>String(r.id)!==String(id));renderAdmin();}else showAlert('','error','Could not remove rental.');}
-function promptCancel(id){cancelTargetId=id;const r=rentals.find(x=>String(x.id)===String(id));if(!r)return;const dt=new Date(r.date+'T'+r.start+':00'),hoursUntil=(dt-new Date())/(1000*60*60);const isLate=hoursUntil<=24&&hoursUntil>0;document.getElementById('cancel-body').innerHTML=(isLate?'<div class="alert alert-warning"><strong>Late cancellation &mdash; within 24 hours.</strong> Facilitator fee of <strong>$'+Number(r.facilitatorFee||0).toFixed(2)+'</strong> will still be invoiced.</div>':'<div class="alert alert-info">More than 24 hours out. No fees will be charged.</div>')+'<div style="margin-top:8px;font-size:13px;color:var(--gray-600)">'+r.facility+' &middot; '+fmtDate(r.date)+' &middot; '+r.group+'</div>';document.getElementById('modal-cancel').classList.add('open');}
-async function executeCancel(){
-  const r=rentals.find(x=>String(x.id)===String(cancelTargetId));if(!r){closeModal('modal-cancel');return;}
-  const dt=new Date(r.date+'T'+r.start+':00'),hoursUntil=(dt-new Date())/(1000*60*60);const isLate=hoursUntil<=24&&hoursUntil>0;
-  const updates={id:String(r.id),status:isLate?'late-cancel':'cancelled',cancelledAt:new Date().toISOString()};
-  if(isLate){updates.price=r.facilitatorFee||0;updates.facilityFee=0;updates.custodialFee=0;updates.discountAmt=0;}
-  else{updates.price=0;updates.facilityFee=0;updates.facilitatorFee=0;updates.custodialFee=0;updates.discountAmt=0;}
-  const result=await api({action:'updateRental',...updates});
-  if(result.success){Object.assign(r,updates);closeModal('modal-cancel');renderAdmin();}
-  else showAlert('','error','Could not cancel rental.');
-}
-
-function renderInvoices(){const month=document.getElementById('inv-month').value,gf=document.getElementById('inv-group').value;const groups=gf?[gf]:['LTYA','HS Clubs','Special Olympics','General Public'];let html='',any=false;groups.forEach(grp=>{const gr=rentals.filter(r=>r.group===grp&&(r.status==='scheduled'||r.status==='late-cancel')&&r.date&&r.date.startsWith(month));if(!gr.length)return;any=true;gr.sort((a,b)=>new Date(a.date)-new Date(b.date));const tFac=gr.filter(r=>r.status==='scheduled').reduce((s,r)=>s+Number(r.facilityFee||0),0);const tFacltr=gr.reduce((s,r)=>s+(r.status==='scheduled'?Number(r.facilitatorFee||0):Number(r.price||0)),0);const tCust=gr.filter(r=>r.status==='scheduled').reduce((s,r)=>s+Number(r.custodialFee||0),0);const total=gr.reduce((s,r)=>s+Number(r.price||0),0);const[yr,mo]=month.split('-'),mLabel=new Date(yr,mo-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});const sched=gr.filter(r=>r.status==='scheduled'),lc=gr.filter(r=>r.status==='late-cancel');html+='<div class="invoice-card"><div class="invoice-header"><div><h3>Invoice &mdash; '+grp+'</h3><div class="invoice-meta">'+mLabel+' &middot; '+sched.length+' completed'+(lc.length>0?' &middot; '+lc.length+' late cancel':'')+'</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:white">$'+total.toFixed(2)+'</div><div class="invoice-meta">Total due</div></div></div><div class="invoice-body"><div style="margin-bottom:12px;font-size:12px;color:var(--gray-600)"><strong style="color:var(--black)">Bill to:</strong> '+(gr[0].org||grp)+' &middot; '+gr[0].name+' &middot; '+gr[0].email+'<br><strong style="color:var(--black)">Mail to:</strong> Lake Travis High School &mdash; ATTN: Athletics, 3324 Ranch Road 620 S, Austin TX 78738<br><strong style="color:var(--black)">Due:</strong> Upon receipt. 6% penalty after 30 days + 15% admin fee.</div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;font-size:11px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;background:var(--primary);border-radius:6px;margin-bottom:4px"><span>Event</span><span>Facility fee</span><span>Support fees</span><span>Total</span></div>';gr.forEach(r=>{const isLC=r.status==='late-cancel';const support=isLC?Number(r.price||0):(Number(r.facilitatorFee||0)+Number(r.custodialFee||0));html+='<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:12px;align-items:start;'+(isLC?'background:#fff5f5;':'')+'"><div><strong>'+fmtDate(r.date)+'</strong> &middot; '+r.start+'&ndash;'+r.end+(isLC?'<span style="margin-left:5px;padding:1px 5px;background:var(--primary-light);color:var(--primary-dark);border-radius:8px;font-size:10px;font-weight:600">LATE CANCEL</span>':'')+'<br><span style="color:var(--gray-600)">'+r.facility+(r.facilitator?' &middot; '+r.facilitator:'')+'</span></div><div>'+(isLC?'&mdash;':'$'+Number(r.facilityFee||0).toFixed(2))+'</div><div>$'+support.toFixed(2)+'</div><div style="font-weight:600;color:var(--black)">$'+Number(r.price||0).toFixed(2)+'</div></div>';});html+='<div class="inv-subtotal"><span>Facility fees</span><span>$'+tFac.toFixed(2)+'</span></div><div class="inv-subtotal"><span>Facilitator fees ($46/hr &mdash; incl. open &amp; close)</span><span>$'+tFacltr.toFixed(2)+'</span></div>'+(tCust>0?'<div class="inv-subtotal"><span>Custodial ($31/hr)</span><span>$'+tCust.toFixed(2)+'</span></div>':'')+'<div class="inv-total"><span>Total due</span><span>$'+total.toFixed(2)+'</span></div><div style="margin-top:10px;padding:8px 12px;background:#fff1f1;border-radius:7px;font-size:12px;color:var(--primary-dark);border-left:3px solid var(--primary)">No deposit collected. Remit full payment on or before <strong>'+new Date(yr,parseInt(mo),0).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</strong>.</div></div></div>';});if(!any)html='<div class="empty"><div class="empty-icon">&#129518;</div>No completed rentals for this month / group yet.</div>';document.getElementById('invoice-list').innerHTML=html;}
-
-function statusBadge(s){const c={pending:'status-pending',confirmed:'status-confirmed',scheduled:'status-scheduled',unavailable:'status-unavailable',cancelled:'status-cancelled','late-cancel':'status-late-cancel'};const l={pending:'Pending',confirmed:'Awaiting facilitator',scheduled:'Scheduled &#10003;',unavailable:'Unavailable',cancelled:'Cancelled','late-cancel':'Late cancel &mdash; fee owed'};return'<span class="status '+(c[s]||'')+'">'+(l[s]||s)+'</span>';}
-function fmtDate(d){if(!d)return'';const[y,m,day]=d.split('-');return new Date(y,m-1,day).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}
-function showAlert(id,type,msg){const el=document.getElementById(id);if(el)el.innerHTML='<div class="alert alert-'+type+'">'+msg+'</div>';}
-function clearAlert(id){const el=document.getElementById(id);if(el)el.innerHTML='';}
-function showModal2(title,sub,body,showConfirm){document.getElementById('modal-title').innerHTML=title;document.getElementById('modal-sub').innerHTML=sub;document.getElementById('modal-body').innerHTML=body;document.getElementById('modal-confirm-btn').style.display=showConfirm?'inline-flex':'none';document.getElementById('modal-avail').classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open');}
-
-// Init — load data then render
-updateWindowBanner();updateModeSwitcher();
-loadAllData().then(()=>renderAdmin());
-</script>
-</body>
-</html>

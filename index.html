@@ -615,7 +615,30 @@ async function loadFacilitatorView(){
   if(result.rentals)rentals=result.rentals;
   const open=rentals.filter(r=>r.status==='confirmed'&&fac.facilities.includes(r.facility));
   if(!open.length){list.innerHTML='<div class="empty"><div class="empty-icon">&#127979;</div>No open rentals at your approved facilities right now.</div>';return;}
-  list.innerHTML=open.map(r=>'<div style="background:white;border:1px solid var(--gray-200);border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid var(--green)"><div style="font-size:15px;font-weight:600;color:var(--black);margin-bottom:10px">'+fmtDate(r.date)+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px"><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Facility</div><div style="font-size:13px;font-weight:500">'+r.facility+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Time</div><div style="font-size:13px;font-weight:500">'+fmtTimeRange(r.start,r.end)+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Group</div><div style="font-size:13px;font-weight:500">'+r.group+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Activity</div><div style="font-size:13px;font-weight:500">'+(r.activity||'Not specified')+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Org Type</div><div style="font-size:13px;font-weight:500">'+(r.orgtype||'Not specified')+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Est. Attendance</div><div style="font-size:13px;font-weight:500">'+(r.attendance||'Not specified')+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Contact</div><div style="font-size:13px;font-weight:500">'+r.name+'</div></div><div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Lights</div><div style="font-size:13px;font-weight:500">'+(r.lights==='yes'?'Yes':'No')+'</div></div></div><div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--green-light);border-radius:8px;border:1px solid #a7dfc6;flex-wrap:wrap;gap:8px"><span style="font-size:13px;color:var(--green);font-weight:600">Your pay: $'+Number(r.facilitatorFee||0).toFixed(2)+' (incl. open &amp; close)</span><div style="display:flex;gap:8px;align-items:center"><span class="awaiting-pill">Needs facilitator</span><button class="btn btn-success btn-sm" onclick="claimRental(''+r.id+'')">Claim &amp; schedule</button></div></div></div>').join('');
+  list.innerHTML=open.map(r=>{
+  const lights=r.lights==='yes'?'Yes':'No';
+  const activity=r.activity||'Not specified';
+  const orgtype=r.orgtype||'Not specified';
+  const attendance=r.attendance||'Not specified';
+  const pay='$'+Number(r.facilitatorFee||0).toFixed(2);
+  return '<div style="background:white;border:1px solid var(--gray-200);border-radius:10px;padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-left:4px solid var(--green)">'
+    +'<div style="font-size:15px;font-weight:600;color:var(--black);margin-bottom:10px">'+fmtDate(r.date)+'</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Facility</div><div style="font-size:13px;font-weight:500">'+r.facility+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Time</div><div style="font-size:13px;font-weight:500">'+fmtTimeRange(r.start,r.end)+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Group</div><div style="font-size:13px;font-weight:500">'+r.group+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Activity</div><div style="font-size:13px;font-weight:500">'+activity+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Org Type</div><div style="font-size:13px;font-weight:500">'+orgtype+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Est. Attendance</div><div style="font-size:13px;font-weight:500">'+attendance+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Contact</div><div style="font-size:13px;font-weight:500">'+r.name+'</div></div>'
+    +'<div><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-400)">Lights</div><div style="font-size:13px;font-weight:500">'+lights+'</div></div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--green-light);border-radius:8px;border:1px solid #a7dfc6;flex-wrap:wrap;gap:8px">'
+    +'<span style="font-size:13px;color:var(--green);font-weight:600">Your pay: '+pay+' (incl. open &amp; close)</span>'
+    +'<div style="display:flex;gap:8px;align-items:center"><span class="awaiting-pill">Needs facilitator</span>'
+    +'<button class="btn btn-success btn-sm" onclick="claimRental(''+r.id+'')">Claim &amp; schedule</button>'
+    +'</div></div></div>';
+}).join('');
 }
 
 async function claimRental(rentalId){

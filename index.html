@@ -226,6 +226,7 @@ tr:hover td{background:#fef9f9}
       <div class="field"><label>Insurance (carrier + policy #) <span class="req">*</span></label><input type="text" id="r-insurance" placeholder="e.g. Allstate #PLY-44821"><div class="field-note">General Liability: $1M per occurrence / $1M aggregate. LTISD listed as Additional Insured.</div></div>
     </div>
   </div>
+  <div id="full-form-panels" style="display:none">
   <div id="mode-switcher" style="display:none">
     <div class="mode-tabs">
       <button class="mode-tab active" id="tab-single" onclick="setMode('single')">Single request</button>
@@ -317,6 +318,8 @@ tr:hover td{background:#fef9f9}
       </div>
     </div>
     <div id="bulk-results"></div>
+  </div>
+
   </div>
 </div>
 
@@ -513,7 +516,10 @@ function verifyLTYACode(){
     document.getElementById('ltya-code-error').style.display='none';
     document.getElementById('ltya-gate').style.display='none';
     document.getElementById('form-body').style.display='block';
+    document.getElementById('full-form-panels').style.display='block';
     updateWindowBanner();
+    updateModeSwitcher();
+    updatePricePreview();
   } else {
     ltyaVerified=false;
     document.getElementById('ltya-code-error').style.display='block';
@@ -525,26 +531,33 @@ function selectGroup(name,tier,tierName,el){
   document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
   if(name==='LTYA'){
-    // Show LTYA gate, hide form until verified
     ltyaVerified=false;
     document.getElementById('ltya-code-input').value='';
     document.getElementById('ltya-code-error').style.display='none';
     document.getElementById('ltya-gate').style.display='block';
     document.getElementById('form-body').style.display='none';
+    document.getElementById('full-form-panels').style.display='none';
   } else {
-    // Non-LTYA: hide gate, show form immediately
     document.getElementById('ltya-gate').style.display='none';
     document.getElementById('form-body').style.display='block';
+    document.getElementById('full-form-panels').style.display='block';
     updateWindowBanner();
     updateModeSwitcher();
     updatePricePreview();
   }
 }
-function updateWindowBanner(){const months=BOOKING_WINDOW[selectedGroup];const today=new Date(),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+months);document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];document.getElementById('r-date').min=today.toISOString().split('T')[0];
-// LTYA: hide booking window and discount info from renter
-if(selectedGroup==='LTYA'){document.getElementById('window-banner').innerHTML='<div class="window-banner"><span style="color:var(--orange)">&#9888;&#65039; Late cancellations (within 24 hrs of event) = facilitator fee still owed</span></div>';return;}
-const months_label=months===2?'2 months':'1 month';document.getElementById('window-banner').innerHTML='<div class="window-banner">&#128197; <span><strong>'+months_label+' booking window</strong> &middot; '+selectedTierName+' &middot; <span style="color:var(--orange)">Late cancel (within 24 hrs) = facilitator fee owed</span></span></div>';}
-function updateModeSwitcher(){const hasBulk=selectedGroup==='LTYA'||selectedGroup==='HS Clubs';document.getElementById('mode-switcher').style.display=hasBulk?'block':'none';if(!hasBulk)setMode('single');}
+function updateWindowBanner(){
+  if(!selectedGroup){document.getElementById('window-banner').innerHTML='';return;}
+  const months=BOOKING_WINDOW[selectedGroup]||1;
+  const today=new Date(),maxDate=new Date(today);
+  maxDate.setMonth(maxDate.getMonth()+months);
+  document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];
+  document.getElementById('r-date').min=today.toISOString().split('T')[0];
+  if(selectedGroup==='LTYA'){document.getElementById('window-banner').innerHTML='<div class="window-banner"><span style="color:var(--orange)">&#9888;&#65039; Late cancellations (within 24 hrs of event) = facilitator fee still owed</span></div>';return;}
+  const months_label=months===2?'2 months':'1 month';
+  document.getElementById('window-banner').innerHTML='<div class="window-banner">&#128197; <span><strong>'+months_label+' booking window</strong> &middot; '+selectedTierName+' &middot; <span style="color:var(--orange)">Late cancel (within 24 hrs) = facilitator fee owed</span></span></div>';
+}
+function updateModeSwitcher(){if(!selectedGroup)return;const hasBulk=selectedGroup==='LTYA'||selectedGroup==='HS Clubs';document.getElementById('mode-switcher').style.display=hasBulk?'block':'none';if(!hasBulk)setMode('single');}
 function setMode(mode){document.getElementById('tab-single').classList.toggle('active',mode==='single');document.getElementById('tab-bulk').classList.toggle('active',mode==='bulk');document.getElementById('panel-single').style.display=mode==='single'?'block':'none';document.getElementById('panel-bulk').style.display=mode==='bulk'?'block':'none';}
 function updateOrgTypeMessage(){
   const val=document.getElementById('r-orgtype').value;
@@ -848,7 +861,6 @@ function showModal2(title,sub,body,showConfirm){document.getElementById('modal-t
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 
 // Init — load data then render
-updateWindowBanner();updateModeSwitcher();
 loadAllData().then(()=>renderAdmin());
 </script>
 </body>

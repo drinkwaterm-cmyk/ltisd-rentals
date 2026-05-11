@@ -178,43 +178,53 @@ tr:hover td{background:#fef9f9}
   <div class="card">
     <div class="card-title">Your group</div>
     <div class="group-pills">
-      <button class="group-pill selected" onclick="selectGroup('LTYA','tier-2','Reduced Level 2',this)">LTYA</button>
+      <button class="group-pill" onclick="selectGroup('LTYA','tier-2','Reduced Level 2',this)">LTYA</button>
       <button class="group-pill" onclick="selectGroup('HS Clubs','tier-1','Reduced Level 1',this)">HS Clubs</button>
       <button class="group-pill" onclick="selectGroup('Special Olympics','tier-3','Reduced Level 3',this)">Special Olympics</button>
       <button class="group-pill" onclick="selectGroup('Non-LTYA Youth League','tier-2','Reduced Level 2',this)">Non-LTYA Youth League</button>
       <button class="group-pill" onclick="selectGroup('General Public','tier-4','Standard',this)">General Public</button>
     </div>
-    <div id="window-banner"></div>
-    <div id="ltya-code-field" style="display:none;margin-bottom:12px"><div style="padding:12px 14px;background:var(--sky);border:1px solid #bfdbfe;border-radius:8px"><div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px">&#128274; LTYA Access Code Required</div><div style="font-size:12px;color:var(--blue);margin-bottom:8px">Enter your LTYA access code to proceed with this group selection.</div><div style="display:flex;gap:8px;align-items:center"><input type="password" id="ltya-code-input" placeholder="Enter access code" style="flex:1;padding:8px 11px;border:1px solid #bfdbfe;border-radius:7px;font-family:var(--font);font-size:14px"><button class="btn btn-primary btn-sm" onclick="verifyLTYACode()">Verify</button></div><div id="ltya-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:6px;font-weight:500">&#10007; Incorrect access code. Please try again or select a different group.</div><div id="ltya-code-success" style="display:none;font-size:12px;color:var(--green);margin-top:6px;font-weight:500">&#10003; Access code verified. You may proceed as LTYA.</div></div></div>
-        <div id="ltya-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:6px;font-weight:500">&#10007; Incorrect access code. Please try again or select a different group.</div>
-        <div id="ltya-code-success" style="display:none;font-size:12px;color:var(--green);margin-top:6px;font-weight:500">&#10003; Access code verified. You may proceed as LTYA.</div>
+
+    <!-- LTYA password gate -->
+    <div id="ltya-gate" style="display:none;padding:14px;background:var(--sky);border:1px solid #bfdbfe;border-radius:8px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:6px">&#128274; LTYA Access Code Required</div>
+      <div style="font-size:12px;color:var(--blue);margin-bottom:10px">Enter your LTYA access code to unlock the rental form.</div>
+      <div style="display:flex;gap:8px">
+        <input type="password" id="ltya-code-input" placeholder="Enter access code" style="flex:1;padding:9px 11px;border:1px solid #bfdbfe;border-radius:8px;font-family:var(--font);font-size:14px;background:white">
+        <button class="btn btn-primary" onclick="verifyLTYACode()">Verify</button>
       </div>
+      <div id="ltya-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:7px;font-weight:500">&#10007; Incorrect code. Please try again or select a different group.</div>
     </div>
-    <div class="field">
-      <label>Organization type <span class="req">*</span></label>
-      <select id="r-orgtype" onchange="updateOrgTypeMessage()">
-        <option value="">&#8212; Select your organization type &#8212;</option>
-        <option value="LTISD student group / booster club / PTO">LTISD recognized student group, booster club, or PTO</option>
-        <option value="Student group hosting contest or large event">Student group hosting contest or large event</option>
-        <option value="Non-school youth sports 90%+ LTISD students">Non-school youth sports &#8212; 90%+ LTISD students</option>
-        <option value="Non-profit organization">Non-profit organization</option>
-        <option value="Governmental entity serving LTISD">Governmental entity serving LTISD</option>
-        <option value="For-profit / private event">For-profit or private event</option>
-      </select>
-      <div id="nonprofit-notice" style="display:none;margin-top:8px;padding:10px 13px;background:#fff1f1;border:1px solid #fca5a5;border-radius:8px;font-size:13px;color:var(--primary-dark)">
-        <strong>&#9888;&#65039; Non-profit documentation required</strong><br>
-        You must email a signed and notarized non-profit status form to <strong>drinkwaterm@ltisdschools.org</strong> before your rental request can be processed. Your request will not be officially scheduled until this form is received and verified.
+
+    <!-- Rest of form — hidden until group selected (non-LTYA) or LTYA verified -->
+    <div id="form-body" style="display:none">
+      <div id="window-banner"></div>
+      <div class="field">
+        <label>Organization type <span class="req">*</span></label>
+        <select id="r-orgtype" onchange="updateOrgTypeMessage()">
+          <option value="">&#8212; Select your organization type &#8212;</option>
+          <option value="LTISD student group / booster club / PTO">LTISD recognized student group, booster club, or PTO</option>
+          <option value="Student group hosting contest or large event">Student group hosting contest or large event</option>
+          <option value="Non-school youth sports 90%+ LTISD students">Non-school youth sports &#8212; 90%+ LTISD students</option>
+          <option value="Non-profit organization">Non-profit organization</option>
+          <option value="Governmental entity serving LTISD">Governmental entity serving LTISD</option>
+          <option value="For-profit / private event">For-profit or private event</option>
+        </select>
+        <div id="nonprofit-notice" style="display:none;margin-top:8px;padding:10px 13px;background:#fff1f1;border:1px solid #fca5a5;border-radius:8px;font-size:13px;color:var(--primary-dark)">
+          <strong>&#9888;&#65039; Non-profit documentation required</strong><br>
+          You must email a signed and notarized non-profit status form to <strong>drinkwaterm@ltisdschools.org</strong> before your rental request can be processed.
+        </div>
       </div>
+      <div class="field-row">
+        <div class="field"><label>Contact name <span class="req">*</span></label><input type="text" id="r-name" placeholder="Full name"></div>
+        <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="r-email" placeholder="email@example.com"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" id="r-phone" placeholder="(512) 000-0000"></div>
+        <div class="field"><label>Organization name <span class="req">*</span></label><input type="text" id="r-org" placeholder="Organization or club name"></div>
+      </div>
+      <div class="field"><label>Insurance (carrier + policy #) <span class="req">*</span></label><input type="text" id="r-insurance" placeholder="e.g. Allstate #PLY-44821"><div class="field-note">General Liability: $1M per occurrence / $1M aggregate. LTISD listed as Additional Insured.</div></div>
     </div>
-    <div class="field-row">
-      <div class="field"><label>Contact name <span class="req">*</span></label><input type="text" id="r-name" placeholder="Full name"></div>
-      <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="r-email" placeholder="email@example.com"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" id="r-phone" placeholder="(512) 000-0000"></div>
-      <div class="field"><label>Organization name <span class="req">*</span></label><input type="text" id="r-org" placeholder="Organization or club name"></div>
-    </div>
-    <div class="field"><label>Insurance (carrier + policy #) <span class="req">*</span></label><input type="text" id="r-insurance" placeholder="e.g. Allstate #PLY-44821"><div class="field-note">General Liability: $1M per occurrence / $1M aggregate. LTISD listed as Additional Insured.</div></div>
   </div>
   <div id="mode-switcher" style="display:none">
     <div class="mode-tabs">
@@ -471,7 +481,7 @@ const BOOKING_WINDOW = {'LTYA':2,'HS Clubs':2,'Special Olympics':1,'Non-LTYA You
 function getRateKey(f,lights){const fl=f.toLowerCase(),L=lights==='yes';if(fl==='lths cav stadium')return L?'Stadium - Varsity Lights':'Stadium - Varsity No Lights';if(fl==='lths track stadium')return L?'Stadium - SubVarsity Lights':'Stadium - SubVarsity No Lights';if(fl.includes('baseball')||fl.includes('softball'))return L?'Baseball Lights':'Baseball No Lights';if(fl.includes('track field'))return 'Track Lane';if(fl.includes('grass'))return 'Practice Field - Secondary';if(fl==='lths round gym'||fl==='lths competition gym')return 'Gym - Secondary Main';if(fl==='lths aux gym'||fl==='lths wrestling room')return 'Gym - Secondary Aux';if(fl.includes('main gym'))return 'Gym - Secondary Main';if(fl.includes('aux gym'))return 'Gym - Secondary Aux';const ep=['bce','lpe','lte','she','rhe','wche','lwe'];if(ep.some(p=>fl.startsWith(p)))return 'Gym - Elementary';return 'Gym - Secondary Main';}
 function calcPrice(facility,start,end,tierName,lights,custodianHours,group){if(!start||!end)return null;const[sh,sm]=start.split(':').map(Number),[eh,em]=end.split(':').map(Number);const hours=((eh*60+em)-(sh*60+sm))/60;if(hours<=0)return null;const rateKey=getRateKey(facility,lights);const rates=RATE_MAP[rateKey]||[26,52,103,206];const idx=TIER_INDEX[tierName]??3,baseRate=rates[idx];let facilityFee=baseRate*hours,discountAmt=0;if(group==='LTYA'){discountAmt=facilityFee*LTYA_DISC;facilityFee-=discountAmt;}const facilitatorFee=FACILITATOR_RATE*hours;const custodialFee=(parseInt(custodianHours)||0)*CUSTODIAL_RATE;return{hours,baseRate,rateKey,facilityFee,discountAmt,facilitatorFee,custodialFee,total:facilityFee+facilitatorFee+custodialFee};}
 
-let selectedFacility='LTHS Round Gym',selectedGroup='LTYA',selectedTier='tier-2',selectedTierName='Reduced Level 2';
+let selectedFacility='LTHS Round Gym',selectedGroup='',selectedTier='',selectedTierName='';
 let agreementAcknowledged=false,pendingRental=null,cancelTargetId=null,editFacilitatorId=null;
 let ltyaVerified=false;
 
@@ -501,23 +511,34 @@ function verifyLTYACode(){
   if(code===LTYA_CODE){
     ltyaVerified=true;
     document.getElementById('ltya-code-error').style.display='none';
-    document.getElementById('ltya-code-success').style.display='block';
-    document.getElementById('ltya-code-input').disabled=true;
+    document.getElementById('ltya-gate').style.display='none';
+    document.getElementById('form-body').style.display='block';
+    updateWindowBanner();
   } else {
     ltyaVerified=false;
     document.getElementById('ltya-code-error').style.display='block';
-    document.getElementById('ltya-code-success').style.display='none';
   }
 }
 
 function selectGroup(name,tier,tierName,el){
-  // If switching away from LTYA reset verification
-  if(name!=='LTYA'){ltyaVerified=false;document.getElementById('ltya-code-input').value='';document.getElementById('ltya-code-input').disabled=false;document.getElementById('ltya-code-error').style.display='none';document.getElementById('ltya-code-success').style.display='none';}
-  // Show code field only for LTYA
-  document.getElementById('ltya-code-field').style.display=name==='LTYA'?'block':'none';
   selectedGroup=name;selectedTier=tier;selectedTierName=tierName;
   document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));
-  el.classList.add('selected');updateWindowBanner();updateModeSwitcher();updatePricePreview();
+  el.classList.add('selected');
+  if(name==='LTYA'){
+    // Show LTYA gate, hide form until verified
+    ltyaVerified=false;
+    document.getElementById('ltya-code-input').value='';
+    document.getElementById('ltya-code-error').style.display='none';
+    document.getElementById('ltya-gate').style.display='block';
+    document.getElementById('form-body').style.display='none';
+  } else {
+    // Non-LTYA: hide gate, show form immediately
+    document.getElementById('ltya-gate').style.display='none';
+    document.getElementById('form-body').style.display='block';
+    updateWindowBanner();
+    updateModeSwitcher();
+    updatePricePreview();
+  }
 }
 function updateWindowBanner(){const months=BOOKING_WINDOW[selectedGroup];const today=new Date(),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+months);document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];document.getElementById('r-date').min=today.toISOString().split('T')[0];
 // LTYA: hide booking window and discount info from renter

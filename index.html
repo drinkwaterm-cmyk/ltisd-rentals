@@ -666,12 +666,13 @@ async function loadFacilitatorView(){
     +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--green-light);border-radius:8px;border:1px solid #a7dfc6;flex-wrap:wrap;gap:8px">'
     +'<span style="font-size:13px;color:var(--green);font-weight:600">Your pay: '+pay+' (incl. open &amp; close)</span>'
     +'<div style="display:flex;gap:8px;align-items:center"><span class="awaiting-pill">Needs facilitator</span>'
-    +'<button class="btn btn-success btn-sm" onclick="claimRental(''+r.id+'')">Claim &amp; schedule</button>'
+    +'<button class="btn btn-success btn-sm" onclick="claimRental(this)" data-id="'+r.id+'">Claim &amp; schedule</button>'
     +'</div></div></div>';
 }).join('');
 }
 
-async function claimRental(rentalId){
+async function claimRental(el){
+  const rentalId = el.dataset ? el.dataset.id : el;
   if(!authState.facEmail){showAlert('fac-alert','error','Not signed in.');return;}
   const fac=facilitators.find(f=>f.email.toLowerCase()===authState.facEmail);
   if(!fac){showAlert('fac-alert','error','Facilitator not found.');return;}

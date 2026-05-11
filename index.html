@@ -699,25 +699,36 @@ async function executeCancel(){
 function renderInvoices(){const month=document.getElementById('inv-month').value,gf=document.getElementById('inv-group').value;const groups=gf?[gf]:['LTYA','HS Clubs','Special Olympics','General Public'];let html='',any=false;groups.forEach(grp=>{const gr=rentals.filter(r=>r.group===grp&&(r.status==='scheduled'||r.status==='late-cancel')&&r.date&&r.date.startsWith(month));if(!gr.length)return;any=true;gr.sort((a,b)=>new Date(a.date)-new Date(b.date));const tFac=gr.filter(r=>r.status==='scheduled').reduce((s,r)=>s+Number(r.facilityFee||0),0);const tFacltr=gr.reduce((s,r)=>s+(r.status==='scheduled'?Number(r.facilitatorFee||0):Number(r.price||0)),0);const tCust=gr.filter(r=>r.status==='scheduled').reduce((s,r)=>s+Number(r.custodialFee||0),0);const total=gr.reduce((s,r)=>s+Number(r.price||0),0);const[yr,mo]=month.split('-'),mLabel=new Date(yr,mo-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});const sched=gr.filter(r=>r.status==='scheduled'),lc=gr.filter(r=>r.status==='late-cancel');html+='<div class="invoice-card"><div class="invoice-header"><div><h3>Invoice &mdash; '+grp+'</h3><div class="invoice-meta">'+mLabel+' &middot; '+sched.length+' completed'+(lc.length>0?' &middot; '+lc.length+' late cancel':'')+'</div></div><div style="text-align:right"><div style="font-size:20px;font-weight:700;font-family:var(--mono);color:white">$'+total.toFixed(2)+'</div><div class="invoice-meta">Total due</div></div></div><div class="invoice-body"><div style="margin-bottom:12px;font-size:12px;color:var(--gray-600)"><strong style="color:var(--black)">Bill to:</strong> '+(gr[0].org||grp)+' &middot; '+gr[0].name+' &middot; '+gr[0].email+'<br><strong style="color:var(--black)">Mail to:</strong> Lake Travis High School &mdash; ATTN: Athletics, 3324 Ranch Road 620 S, Austin TX 78738<br><strong style="color:var(--black)">Due:</strong> Upon receipt. 6% penalty after 30 days + 15% admin fee.</div><div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;font-size:11px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;background:var(--primary);border-radius:6px;margin-bottom:4px"><span>Event</span><span>Facility fee</span><span>Support fees</span><span>Total</span></div>';gr.forEach(r=>{const isLC=r.status==='late-cancel';const support=isLC?Number(r.price||0):(Number(r.facilitatorFee||0)+Number(r.custodialFee||0));html+='<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:5px;padding:7px 0;border-bottom:1px solid var(--gray-100);font-size:12px;align-items:start;'+(isLC?'background:#fff5f5;':'')+'"><div><strong>'+fmtDate(r.date)+'</strong> &middot; '+fmtTimeRange(r.start,r.end)+(isLC?'<span style="margin-left:5px;padding:1px 5px;background:var(--primary-light);color:var(--primary-dark);border-radius:8px;font-size:10px;font-weight:600">LATE CANCEL</span>':'')+'<br><span style="color:var(--gray-600)">'+r.facility+(r.facilitator?' &middot; '+r.facilitator:'')+'</span></div><div>'+(isLC?'&mdash;':'$'+Number(r.facilityFee||0).toFixed(2))+'</div><div>$'+support.toFixed(2)+'</div><div style="font-weight:600;color:var(--black)">$'+Number(r.price||0).toFixed(2)+'</div></div>';});html+='<div class="inv-subtotal"><span>Facility fees</span><span>$'+tFac.toFixed(2)+'</span></div><div class="inv-subtotal"><span>Facilitator fees ($46/hr &mdash; incl. open &amp; close)</span><span>$'+tFacltr.toFixed(2)+'</span></div>'+(tCust>0?'<div class="inv-subtotal"><span>Custodial ($31/hr)</span><span>$'+tCust.toFixed(2)+'</span></div>':'')+'<div class="inv-total"><span>Total due</span><span>$'+total.toFixed(2)+'</span></div><div style="margin-top:10px;padding:8px 12px;background:#fff1f1;border-radius:7px;font-size:12px;color:var(--primary-dark);border-left:3px solid var(--primary)">No deposit collected. Remit full payment on or before <strong>'+new Date(yr,parseInt(mo),0).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})+'</strong>.</div></div></div>';});if(!any)html='<div class="empty"><div class="empty-icon">&#129518;</div>No completed rentals for this month / group yet.</div>';document.getElementById('invoice-list').innerHTML=html;}
 
 function statusBadge(s){const c={pending:'status-pending',confirmed:'status-confirmed',scheduled:'status-scheduled',unavailable:'status-unavailable',cancelled:'status-cancelled','late-cancel':'status-late-cancel'};const l={pending:'Pending',confirmed:'Awaiting facilitator',scheduled:'Scheduled &#10003;',unavailable:'Unavailable',cancelled:'Cancelled','late-cancel':'Late cancel &mdash; fee owed'};return'<span class="status '+(c[s]||'')+'">'+(l[s]||s)+'</span>';}
-function fmtDate(d){if(!d)return'';try{const[y,m,day]=d.split('-').map(Number);return new Date(y,m-1,day).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}catch(e){return String(d);}}
-function fmtTime(t){
-  if(!t&&t!==0)return'';
+function fmtDate(d){
+  if(d===null||d===undefined||d==='')return'';
   try{
-    // Handle numeric time (e.g. 0.375 = 9:00 AM from Google Sheets)
-    if(typeof t === 'number'){
-      const totalMins = Math.round(t * 24 * 60);
-      const hr = Math.floor(totalMins/60);
-      const mn = totalMins % 60;
-      const ampm = hr>=12?'PM':'AM';
-      const h = hr%12||12;
+    if(typeof d==='number'){
+      const ms=(d-25569)*86400*1000;
+      const dt=new Date(ms);
+      return dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric',timeZone:'UTC'});
+    }
+    const[y,m,day]=String(d).split('-').map(Number);
+    return new Date(y,m-1,day).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  }catch(e){return String(d);}
+}
+function fmtTime(t){
+  if(t===null||t===undefined||t==='')return'';
+  try{
+    if(typeof t==='number'){
+      const totalMins=Math.round(t*24*60);
+      const hr=Math.floor(totalMins/60)%24;
+      const mn=totalMins%60;
+      const ampm=hr>=12?'PM':'AM';
+      const h=hr%12||12;
       return h+':'+(String(mn).padStart(2,'0'))+' '+ampm+' CST';
     }
-    // Handle string HH:MM
-    const parts = String(t).split(':');
-    const hr = parseInt(parts[0]);
-    const mn = parseInt(parts[1])||0;
-    const ampm = hr>=12?'PM':'AM';
-    const h = hr%12||12;
+    const str=String(t).trim();
+    if(!str)return'';
+    const parts=str.split(':');
+    const hr=parseInt(parts[0])||0;
+    const mn=parseInt(parts[1])||0;
+    const ampm=hr>=12?'PM':'AM';
+    const h=hr%12||12;
     return h+':'+(String(mn).padStart(2,'0'))+' '+ampm+' CST';
   }catch(e){return String(t);}
 }

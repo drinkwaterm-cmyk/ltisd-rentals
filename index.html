@@ -181,9 +181,26 @@ tr:hover td{background:#fef9f9}
       <button class="group-pill selected" onclick="selectGroup('LTYA','tier-2','Reduced Level 2',this)">LTYA</button>
       <button class="group-pill" onclick="selectGroup('HS Clubs','tier-1','Reduced Level 1',this)">HS Clubs</button>
       <button class="group-pill" onclick="selectGroup('Special Olympics','tier-3','Reduced Level 3',this)">Special Olympics</button>
+      <button class="group-pill" onclick="selectGroup('Non-LTYA Youth League','tier-2','Reduced Level 2',this)">Non-LTYA Youth League</button>
       <button class="group-pill" onclick="selectGroup('General Public','tier-4','Standard',this)">General Public</button>
     </div>
     <div id="window-banner"></div>
+    <div class="field">
+      <label>Organization type <span class="req">*</span></label>
+      <select id="r-orgtype" onchange="updateOrgTypeMessage()">
+        <option value="">&#8212; Select your organization type &#8212;</option>
+        <option value="LTISD student group / booster club / PTO">LTISD recognized student group, booster club, or PTO</option>
+        <option value="Student group hosting contest or large event">Student group hosting contest or large event</option>
+        <option value="Non-school youth sports 90%+ LTISD students">Non-school youth sports &#8212; 90%+ LTISD students</option>
+        <option value="Non-profit organization">Non-profit organization</option>
+        <option value="Governmental entity serving LTISD">Governmental entity serving LTISD</option>
+        <option value="For-profit / private event">For-profit or private event</option>
+      </select>
+      <div id="nonprofit-notice" style="display:none;margin-top:8px;padding:10px 13px;background:#fff1f1;border:1px solid #fca5a5;border-radius:8px;font-size:13px;color:var(--primary-dark)">
+        <strong>&#9888;&#65039; Non-profit documentation required</strong><br>
+        You must email a signed and notarized non-profit status form to <strong>drinkwaterm@ltisdschools.org</strong> before your rental request can be processed. Your request will not be officially scheduled until this form is received and verified.
+      </div>
+    </div>
     <div class="field-row">
       <div class="field"><label>Contact name <span class="req">*</span></label><input type="text" id="r-name" placeholder="Full name"></div>
       <div class="field"><label>Email <span class="req">*</span></label><input type="email" id="r-email" placeholder="email@example.com"></div>
@@ -277,7 +294,7 @@ tr:hover td{background:#fef9f9}
         <button class="btn btn-ghost btn-sm" onclick="loadAllData()">&#8635; Refresh</button>
       </div>
     </div>
-    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Facility</th><th>Group</th><th>Contact</th><th>Facilitator</th><th>Facility fee</th><th>Fac. fee</th><th>Custodial</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="admin-table"></tbody></table></div>
+    <div class="table-wrap"><table><thead><tr><th>Date</th><th>Facility</th><th>Group</th><th>Org Type</th><th>Contact</th><th>Facilitator</th><th>Facility fee</th><th>Fac. fee</th><th>Custodial</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody id="admin-table"></tbody></table></div>
     <div id="admin-empty" class="empty" style="display:none"><div class="empty-icon">&#128203;</div>No rentals match.</div>
   </div>
 </div>
@@ -411,7 +428,7 @@ const FLAT_FACILITIES = Object.values(ALL_FACILITIES).flat();
 const RATE_MAP = {'Gym - Elementary':[26,26,103,155],'Gym - Secondary Main':[26,52,103,206],'Gym - Secondary Aux':[21,41,77,155],'Practice Field - Elementary':[21,21,26,52],'Practice Field - Secondary':[21,21,31,77],'Stadium - SubVarsity No Lights':[31,77,155,309],'Stadium - SubVarsity Lights':[52,103,206,361],'Stadium - Varsity No Lights':[103,180,206,412],'Stadium - Varsity Lights':[129,206,283,489],'Baseball No Lights':[26,52,103,206],'Baseball Lights':[52,77,155,283],'Track Lane':[5,10,15,31]};
 const TIER_INDEX = {'Reduced Level 1':0,'Reduced Level 2':1,'Reduced Level 3':2,'Standard':3};
 const FACILITATOR_RATE=46, CUSTODIAL_RATE=31, LTYA_DISC=0.25;
-const BOOKING_WINDOW = {'LTYA':2,'HS Clubs':2,'Special Olympics':1,'General Public':1};
+const BOOKING_WINDOW = {'LTYA':2,'HS Clubs':2,'Special Olympics':1,'Non-LTYA Youth League':1,'General Public':1};
 
 function getRateKey(f,lights){const fl=f.toLowerCase(),L=lights==='yes';if(fl==='lths cav stadium')return L?'Stadium - Varsity Lights':'Stadium - Varsity No Lights';if(fl==='lths track stadium')return L?'Stadium - SubVarsity Lights':'Stadium - SubVarsity No Lights';if(fl.includes('baseball')||fl.includes('softball'))return L?'Baseball Lights':'Baseball No Lights';if(fl.includes('track field'))return 'Track Lane';if(fl.includes('grass'))return 'Practice Field - Secondary';if(fl==='lths round gym'||fl==='lths competition gym')return 'Gym - Secondary Main';if(fl==='lths aux gym'||fl==='lths wrestling room')return 'Gym - Secondary Aux';if(fl.includes('main gym'))return 'Gym - Secondary Main';if(fl.includes('aux gym'))return 'Gym - Secondary Aux';const ep=['bce','lpe','lte','she','rhe','wche','lwe'];if(ep.some(p=>fl.startsWith(p)))return 'Gym - Elementary';return 'Gym - Secondary Main';}
 function calcPrice(facility,start,end,tierName,lights,custodianHours,group){if(!start||!end)return null;const[sh,sm]=start.split(':').map(Number),[eh,em]=end.split(':').map(Number);const hours=((eh*60+em)-(sh*60+sm))/60;if(hours<=0)return null;const rateKey=getRateKey(facility,lights);const rates=RATE_MAP[rateKey]||[26,52,103,206];const idx=TIER_INDEX[tierName]??3,baseRate=rates[idx];let facilityFee=baseRate*hours,discountAmt=0;if(group==='LTYA'){discountAmt=facilityFee*LTYA_DISC;facilityFee-=discountAmt;}const facilitatorFee=FACILITATOR_RATE*hours;const custodialFee=(parseInt(custodianHours)||0)*CUSTODIAL_RATE;return{hours,baseRate,rateKey,facilityFee,discountAmt,facilitatorFee,custodialFee,total:facilityFee+facilitatorFee+custodialFee};}
@@ -441,9 +458,17 @@ function showView(id,el){
   if(id==='invoices')renderInvoices();
 }
 function selectGroup(name,tier,tierName,el){selectedGroup=name;selectedTier=tier;selectedTierName=tierName;document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');updateWindowBanner();updateModeSwitcher();updatePricePreview();}
-function updateWindowBanner(){const months=BOOKING_WINDOW[selectedGroup];const today=new Date(),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+months);document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];document.getElementById('r-date').min=today.toISOString().split('T')[0];const extra=selectedGroup==='LTYA'?' &middot; <strong>25% off facility fee</strong>':'';document.getElementById('window-banner').innerHTML='<div class="window-banner">&#128197; <span><strong>'+(months===2?'2 months':'1 month')+' booking window</strong> &middot; '+selectedTierName+extra+' &middot; <span style="color:var(--orange)">Late cancel (within 24 hrs) = facilitator fee owed</span></span></div>';}
+function updateWindowBanner(){const months=BOOKING_WINDOW[selectedGroup];const today=new Date(),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+months);document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];document.getElementById('r-date').min=today.toISOString().split('T')[0];
+// LTYA: hide booking window and discount info from renter
+if(selectedGroup==='LTYA'){document.getElementById('window-banner').innerHTML='<div class="window-banner"><span style="color:var(--orange)">&#9888;&#65039; Late cancellations (within 24 hrs of event) = facilitator fee still owed</span></div>';return;}
+const months_label=months===2?'2 months':'1 month';document.getElementById('window-banner').innerHTML='<div class="window-banner">&#128197; <span><strong>'+months_label+' booking window</strong> &middot; '+selectedTierName+' &middot; <span style="color:var(--orange)">Late cancel (within 24 hrs) = facilitator fee owed</span></span></div>';}
 function updateModeSwitcher(){const hasBulk=selectedGroup==='LTYA'||selectedGroup==='HS Clubs';document.getElementById('mode-switcher').style.display=hasBulk?'block':'none';if(!hasBulk)setMode('single');}
 function setMode(mode){document.getElementById('tab-single').classList.toggle('active',mode==='single');document.getElementById('tab-bulk').classList.toggle('active',mode==='bulk');document.getElementById('panel-single').style.display=mode==='single'?'block':'none';document.getElementById('panel-bulk').style.display=mode==='bulk'?'block':'none';}
+function updateOrgTypeMessage(){
+  const val=document.getElementById('r-orgtype').value;
+  document.getElementById('nonprofit-notice').style.display=val==='Non-profit organization'?'block':'none';
+}
+
 function selectFacility(name,el){selectedFacility=name;document.querySelectorAll('.facility-tile').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');const bar=document.getElementById('selected-facility-bar');bar.classList.add('visible');document.getElementById('selected-facility-name').textContent=name;}
 function showAgreementModal(){document.getElementById('agree-check').checked=false;const b=document.getElementById('agreement-ok-btn');b.disabled=true;b.style.opacity='0.5';b.style.cursor='not-allowed';document.getElementById('modal-agreement').classList.add('open');}
 function updateAgreementStatus(){const checked=document.getElementById('agree-check').checked;const b=document.getElementById('agreement-ok-btn');b.disabled=!checked;b.style.opacity=checked?'1':'0.5';b.style.cursor=checked?'pointer':'not-allowed';}
@@ -453,7 +478,8 @@ function updatePricePreview(){const start=document.getElementById('r-start').val
 async function submitRequest(){
   if(!agreementAcknowledged){showAlert('req-alert','error','Acknowledge the Facility Use Agreement first.');return;}
   const name=document.getElementById('r-name').value.trim(),email=document.getElementById('r-email').value.trim(),phone=document.getElementById('r-phone').value.trim(),org=document.getElementById('r-org').value.trim(),insurance=document.getElementById('r-insurance').value.trim(),date=document.getElementById('r-date').value,start=document.getElementById('r-start').value,end=document.getElementById('r-end').value,lights=document.getElementById('r-lights').value,custodian=document.getElementById('r-custodian').value;
-  if(!name||!email||!phone||!org||!insurance||!date||!start||!end){showAlert('req-alert','error','Please fill in all required fields.');return;}
+  const orgtype=document.getElementById('r-orgtype').value;
+  if(!name||!email||!phone||!org||!insurance||!orgtype||!date||!start||!end){showAlert('req-alert','error','Please fill in all required fields including organization type.');return;}
   const today=new Date();today.setHours(0,0,0,0);
   const reqDate=new Date(date+'T00:00:00'),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+BOOKING_WINDOW[selectedGroup]);
   if(reqDate<today){showAlert('req-alert','error','Date cannot be in the past.');return;}
@@ -464,7 +490,7 @@ async function submitRequest(){
   const calResult=await api({action:'check',facility:selectedFacility,date,startTime:start,endTime:end});
   submitBtn.disabled=false;submitBtn.style.opacity='1';clearAlert('req-alert');
   const p=calcPrice(selectedFacility,start,end,selectedTierName,lights,custodian,selectedGroup);
-  pendingRental={id:String(Date.now()),name,email,phone,org,insurance,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:selectedFacility,date,start,end,lights,custodianHours:parseInt(custodian)||0,attendance:document.getElementById('r-attendance').value,activity:document.getElementById('r-activity').value,status:'pending',facilitator:'',facilitatorId:'',price:p?p.total:0,facilityFee:p?p.facilityFee:0,facilitatorFee:p?p.facilitatorFee:0,custodialFee:p?p.custodialFee:0,discountAmt:p?p.discountAmt:0,rateKey:p?p.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
+  pendingRental={id:String(Date.now()),name,email,phone,org,insurance,orgtype,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:selectedFacility,date,start,end,lights,custodianHours:parseInt(custodian)||0,attendance:document.getElementById('r-attendance').value,activity:document.getElementById('r-activity').value,status:'pending',facilitator:'',facilitatorId:'',price:p?p.total:0,facilityFee:p?p.facilityFee:0,facilitatorFee:p?p.facilitatorFee:0,custodialFee:p?p.custodialFee:0,discountAmt:p?p.discountAmt:0,rateKey:p?p.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
   if(calResult.error&&calResult.available==null){showModal2('Calendar check unavailable',selectedFacility+' &middot; '+fmtDate(date),'<div class="alert alert-warning">&#9888;&#65039; Could not reach the live calendar. You may proceed but admin will need to verify manually.</div>',true);return;}
   if(!calResult.available){const cl=(calResult.conflicts||[]).map(c=>'<div style="padding:5px 0;border-bottom:1px solid var(--gray-200);font-size:12px">&bull; '+c.message+'</div>').join('');showModal2('Not available',selectedFacility+' on '+fmtDate(date)+' has conflicts.','<div class="alert alert-error"><strong>This date is not available.</strong></div><div style="margin-top:10px">'+cl+'</div>',false);return;}
   const approvedFacs=facilitators.filter(f=>f.facilities&&f.facilities.includes(selectedFacility));
@@ -633,7 +659,7 @@ function renderAdmin(){
     const rowBg=r.status==='late-cancel'?'background:#fff5f5':r.status==='cancelled'?'background:#fafafa':'';
     const approvedForFac=facilitators.filter(f=>f.facilities&&f.facilities.includes(r.facility));
     const facCell=r.facilitator?'<strong>'+r.facilitator+'</strong>':approvedForFac.length>0?'<span style="color:var(--blue);font-size:11px">'+approvedForFac.map(f=>f.name).join(', ')+'</span><br><span style="color:var(--orange);font-size:10px">not yet claimed</span>':'<span style="color:var(--primary);font-size:11px">No facilitators approved</span>';
-    return'<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong><br><span style="font-size:11px;color:var(--gray-400)">'+fmtTimeRange(r.start,r.end)+'</span></td><td style="font-size:12px">'+r.facility+'</td><td><span class="tier-badge '+(r.tier||'tier-4')+'" style="font-size:11px">'+r.group+'</span></td><td style="font-size:12px">'+r.name+'<br><span style="color:var(--gray-400);font-size:11px">'+r.email+'</span></td><td style="font-size:12px">'+facCell+'</td><td style="font-size:12px">'+(r.facilityFee?'$'+Number(r.facilityFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px">'+(r.facilitatorFee&&r.status!=='cancelled'?'$'+Number(r.facilitatorFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px">'+(r.custodialFee&&Number(r.custodialFee)>0?'$'+Number(r.custodialFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px;font-weight:600;color:var(--black)">'+(r.price&&Number(r.price)>0?'$'+Number(r.price).toFixed(2):r.status==='cancelled'?'<span style="color:var(--gray-400)">No charge</span>':'&mdash;')+'</td><td>'+statusBadge(r.status)+'</td><td style="display:flex;flex-direction:column;gap:4px">'+(!isCan?'<button class="btn-danger-sm" onclick="promptCancel(\''+r.id+'\')">Cancel</button>':'')+'<button style="background:none;border:1px solid var(--gray-300);font-family:var(--font);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--gray-600)" onclick="deleteRental(\''+r.id+'\')">Remove</button></td></tr>';
+    return'<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong><br><span style="font-size:11px;color:var(--gray-400)">'+fmtTimeRange(r.start,r.end)+'</span></td><td style="font-size:12px">'+r.facility+'</td><td><span class="tier-badge '+(r.tier||'tier-4')+'" style="font-size:11px">'+r.group+'</span></td><td style="font-size:12px;color:var(--gray-600)">'+(r.orgtype||'&mdash;')+'</td><td style="font-size:12px">'+r.name+'<br><span style="color:var(--gray-400);font-size:11px">'+r.email+'</span></td><td style="font-size:12px">'+facCell+'</td><td style="font-size:12px">'+(r.facilityFee?'$'+Number(r.facilityFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px">'+(r.facilitatorFee&&r.status!=='cancelled'?'$'+Number(r.facilitatorFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px">'+(r.custodialFee&&Number(r.custodialFee)>0?'$'+Number(r.custodialFee).toFixed(2):'&mdash;')+'</td><td style="font-size:12px;font-weight:600;color:var(--black)">'+(r.price&&Number(r.price)>0?'$'+Number(r.price).toFixed(2):r.status==='cancelled'?'<span style="color:var(--gray-400)">No charge</span>':'&mdash;')+'</td><td>'+statusBadge(r.status)+'</td><td style="display:flex;flex-direction:column;gap:4px">'+(!isCan?'<button class="btn-danger-sm" onclick="promptCancel(\''+r.id+'\')">Cancel</button>':'')+'<button style="background:none;border:1px solid var(--gray-300);font-family:var(--font);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;color:var(--gray-600)" onclick="deleteRental(\''+r.id+'\')">Remove</button></td></tr>';
   }).join('');
 }
 

@@ -185,6 +185,11 @@ tr:hover td{background:#fef9f9}
       <button class="group-pill" onclick="selectGroup('General Public','tier-4','Standard',this)">General Public</button>
     </div>
     <div id="window-banner"></div>
+    <div id="ltya-code-field" style="display:none;margin-bottom:12px"><div style="padding:12px 14px;background:var(--sky);border:1px solid #bfdbfe;border-radius:8px"><div style="font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px">&#128274; LTYA Access Code Required</div><div style="font-size:12px;color:var(--blue);margin-bottom:8px">Enter your LTYA access code to proceed with this group selection.</div><div style="display:flex;gap:8px;align-items:center"><input type="password" id="ltya-code-input" placeholder="Enter access code" style="flex:1;padding:8px 11px;border:1px solid #bfdbfe;border-radius:7px;font-family:var(--font);font-size:14px"><button class="btn btn-primary btn-sm" onclick="verifyLTYACode()">Verify</button></div><div id="ltya-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:6px;font-weight:500">&#10007; Incorrect access code. Please try again or select a different group.</div><div id="ltya-code-success" style="display:none;font-size:12px;color:var(--green);margin-top:6px;font-weight:500">&#10003; Access code verified. You may proceed as LTYA.</div></div></div>
+        <div id="ltya-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:6px;font-weight:500">&#10007; Incorrect access code. Please try again or select a different group.</div>
+        <div id="ltya-code-success" style="display:none;font-size:12px;color:var(--green);margin-top:6px;font-weight:500">&#10003; Access code verified. You may proceed as LTYA.</div>
+      </div>
+    </div>
     <div class="field">
       <label>Organization type <span class="req">*</span></label>
       <select id="r-orgtype" onchange="updateOrgTypeMessage()">
@@ -352,8 +357,9 @@ tr:hover td{background:#fef9f9}
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const API = 'https://script.google.com/macros/s/AKfycbxHbB38eJKMp5vivqyHa_RqiCZLyxwYn2y6qUIo-0FeArJJ0L9ISg34Q_dlvolmTsohdw/exec';
-const ADMIN_PW = 'LTAdmin';
-const FAC_PW   = 'LTISD1981';
+const ADMIN_PW  = 'LTAdmin';
+const FAC_PW    = 'LTISD1981';
+const LTYA_CODE = 'Cronk';
 
 // ── API HELPERS ───────────────────────────────────────────────────────────────
 async function api(params) {
@@ -467,6 +473,7 @@ function calcPrice(facility,start,end,tierName,lights,custodianHours,group){if(!
 
 let selectedFacility='LTHS Round Gym',selectedGroup='LTYA',selectedTier='tier-2',selectedTierName='Reduced Level 2';
 let agreementAcknowledged=false,pendingRental=null,cancelTargetId=null,editFacilitatorId=null;
+let ltyaVerified=false;
 
 // Build facility tiles
 Object.entries(ALL_FACILITIES).forEach(([school,facs])=>{
@@ -489,7 +496,29 @@ function showView(id,el){
   if(id==='roster')renderRoster();
   if(id==='invoices')renderInvoices();
 }
-function selectGroup(name,tier,tierName,el){selectedGroup=name;selectedTier=tier;selectedTierName=tierName;document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');updateWindowBanner();updateModeSwitcher();updatePricePreview();}
+function verifyLTYACode(){
+  const code=document.getElementById('ltya-code-input').value.trim();
+  if(code===LTYA_CODE){
+    ltyaVerified=true;
+    document.getElementById('ltya-code-error').style.display='none';
+    document.getElementById('ltya-code-success').style.display='block';
+    document.getElementById('ltya-code-input').disabled=true;
+  } else {
+    ltyaVerified=false;
+    document.getElementById('ltya-code-error').style.display='block';
+    document.getElementById('ltya-code-success').style.display='none';
+  }
+}
+
+function selectGroup(name,tier,tierName,el){
+  // If switching away from LTYA reset verification
+  if(name!=='LTYA'){ltyaVerified=false;document.getElementById('ltya-code-input').value='';document.getElementById('ltya-code-input').disabled=false;document.getElementById('ltya-code-error').style.display='none';document.getElementById('ltya-code-success').style.display='none';}
+  // Show code field only for LTYA
+  document.getElementById('ltya-code-field').style.display=name==='LTYA'?'block':'none';
+  selectedGroup=name;selectedTier=tier;selectedTierName=tierName;
+  document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');updateWindowBanner();updateModeSwitcher();updatePricePreview();
+}
 function updateWindowBanner(){const months=BOOKING_WINDOW[selectedGroup];const today=new Date(),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+months);document.getElementById('r-date').max=maxDate.toISOString().split('T')[0];document.getElementById('r-date').min=today.toISOString().split('T')[0];
 // LTYA: hide booking window and discount info from renter
 if(selectedGroup==='LTYA'){document.getElementById('window-banner').innerHTML='<div class="window-banner"><span style="color:var(--orange)">&#9888;&#65039; Late cancellations (within 24 hrs of event) = facilitator fee still owed</span></div>';return;}
@@ -513,6 +542,7 @@ async function submitRequest(){
   const orgtype=document.getElementById('r-orgtype').value;
   const sport=document.getElementById('r-sport').value;
   const eventtype=document.getElementById('r-eventtype').value;
+  if(selectedGroup==='LTYA'&&!ltyaVerified){showAlert('req-alert','error','Please enter and verify the LTYA access code before submitting.');return;}
   if(!name||!email||!phone||!org||!insurance||!orgtype||!sport||!eventtype||!date||!start||!end){showAlert('req-alert','error','Please fill in all required fields including sport/activity and event type.');return;}
   const today=new Date();today.setHours(0,0,0,0);
   const reqDate=new Date(date+'T00:00:00'),maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+BOOKING_WINDOW[selectedGroup]);

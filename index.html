@@ -148,6 +148,27 @@ tr:hover td{background:#fef9f9}
   </div>
 </div>
 
+<div class="login-screen" id="login-myrentals" style="display:none">
+  <div class="login-box">
+    <div class="login-logo">LT<span>ISD</span> Rentals</div>
+    <div class="login-title">My Rentals</div>
+    <div class="login-sub">Select your group and enter your access code.</div>
+    <div class="login-err" id="mr-err">Incorrect group or access code. Please try again.</div>
+    <div class="field">
+      <label>Your group</label>
+      <select id="mr-group-select" style="width:100%;padding:9px 11px;border:1px solid var(--gray-200);border-radius:8px;font-family:var(--font);font-size:14px;background:white">
+        <option value="">&#8212; Select your group &#8212;</option>
+        <option value="LTYA">LTYA</option>
+        <option value="Men's LAX">HS Clubs &#8212; Men's LAX</option>
+        <option value="Women's LAX">HS Clubs &#8212; Women's LAX</option>
+        <option value="Rugby">HS Clubs &#8212; Rugby</option>
+      </select>
+    </div>
+    <div class="field"><label>Access code</label><input type="password" id="mr-code-input" placeholder="Enter access code"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="checkMRLogin()">View my rentals</button>
+  </div>
+</div>
+
 <div class="login-screen" id="login-facilitator" style="display:none">
   <div class="login-box">
     <div class="login-logo">LT<span>ISD</span> Rentals</div>
@@ -169,6 +190,7 @@ tr:hover td{background:#fef9f9}
   <button class="nav-tab" onclick="gotoAdmin('admin',this)">Admin</button>
   <button class="nav-tab" onclick="gotoAdmin('roster',this)">Facilitator Roster</button>
   <button class="nav-tab" onclick="gotoAdmin('invoices',this)">Invoices</button>
+  <button class="nav-tab" onclick="gotoMyRentals(this)">My Rentals</button>
   <button class="logout-btn" id="logout-btn" style="display:none" onclick="logout()">Sign out</button>
 </div>
 
@@ -179,7 +201,7 @@ tr:hover td{background:#fef9f9}
     <div class="card-title">Your group</div>
     <div class="group-pills">
       <button class="group-pill" onclick="selectGroup('LTYA','tier-2','Reduced Level 2',this)">LTYA</button>
-      <button class="group-pill" onclick="selectGroup('HS Clubs','tier-1','Reduced Level 1',this)">HS Clubs</button>
+      <button class="group-pill" onclick="selectHSClubs(this)">HS Clubs</button>
       <button class="group-pill" onclick="selectGroup('Special Olympics','tier-3','Reduced Level 3',this)">Special Olympics</button>
       <button class="group-pill" onclick="selectGroup('Non-LTYA Youth League','tier-2','Reduced Level 2',this)">Non-LTYA Youth League</button>
       <button class="group-pill" onclick="selectGroup('General Public','tier-4','Standard',this)">General Public</button>
@@ -194,6 +216,26 @@ tr:hover td{background:#fef9f9}
         <button class="btn btn-primary" onclick="verifyLTYACode()">Verify</button>
       </div>
       <div id="ltya-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:7px;font-weight:500">&#10007; Incorrect code. Please try again or select a different group.</div>
+    </div>
+
+    <!-- HS Clubs gate — club selector + password -->
+    <div id="hs-gate" style="display:none;padding:14px;background:var(--gold-light);border:1px solid #f0d080;border-radius:8px;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:600;color:var(--gold);margin-bottom:6px">&#127942; HS Club Access</div>
+      <div style="font-size:12px;color:var(--gold);margin-bottom:10px">Select your club and enter your access code to proceed.</div>
+      <div class="field" style="margin-bottom:10px">
+        <label style="font-size:13px;font-weight:500;color:var(--gray-800);margin-bottom:5px;display:block">Which club? <span class="req">*</span></label>
+        <select id="hs-club-select" style="width:100%;padding:9px 11px;border:1px solid #f0d080;border-radius:8px;font-family:var(--font);font-size:14px;background:white">
+          <option value="">&#8212; Select your club &#8212;</option>
+          <option value="Men's LAX">Men's LAX</option>
+          <option value="Women's LAX">Women's LAX</option>
+          <option value="Rugby">Rugby</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px">
+        <input type="password" id="hs-code-input" placeholder="Enter club access code" style="flex:1;padding:9px 11px;border:1px solid #f0d080;border-radius:8px;font-family:var(--font);font-size:14px;background:white">
+        <button class="btn btn-primary" onclick="verifyHSCode()">Verify</button>
+      </div>
+      <div id="hs-code-error" style="display:none;font-size:12px;color:var(--primary-dark);margin-top:7px;font-weight:500">&#10007; Incorrect code or no club selected. Please try again.</div>
     </div>
 
     <!-- Rest of form — hidden until group selected (non-LTYA) or LTYA verified -->
@@ -323,6 +365,28 @@ tr:hover td{background:#fef9f9}
   </div>
 </div>
 
+<div class="view" id="view-myrentals">
+  <div class="page-header">
+    <div class="page-title">My Rentals</div>
+    <div class="page-sub">Signed in as <strong id="mr-logged-in-name"></strong> &mdash; showing only your group's rentals.</div>
+  </div>
+  <div id="mr-alert"></div>
+  <div class="stats-row" id="mr-stats"></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="card-title" style="margin-bottom:0">All rental requests</div>
+      <button class="btn btn-ghost btn-sm" onclick="loadMyRentals()">&#8635; Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Facility</th><th>Time</th><th>Activity</th><th>Status</th></tr></thead>
+        <tbody id="mr-table"></tbody>
+      </table>
+    </div>
+    <div id="mr-empty" class="empty" style="display:none"><div class="empty-icon">&#128203;</div>No rentals found for your group.</div>
+  </div>
+</div>
+
 <div class="view" id="view-facilitator">
   <div class="page-header">
     <div class="page-title">Facilitator Portal</div>
@@ -373,6 +437,12 @@ const API = 'https://script.google.com/macros/s/AKfycbxHbB38eJKMp5vivqyHa_RqiCZL
 const ADMIN_PW  = 'LTAdmin';
 const FAC_PW    = 'LTISD1981';
 const LTYA_CODE = 'Cronk';
+const CLUB_CODES = {
+  'LTYA': 'Cronk',
+  "Men's LAX": 'LTMLAX',
+  "Women's LAX": 'LTWLAX',
+  'Rugby': 'LTRugby'
+};
 
 // ── API HELPERS ───────────────────────────────────────────────────────────────
 async function api(params) {
@@ -460,8 +530,64 @@ async function checkFacLogin() {
   loadFacilitatorView();
 }
 
+function gotoMyRentals(el){
+  if(authState.role==='myrentals'){showView('myrentals',el);return;}
+  authState.pendingView={id:'myrentals',el};
+  document.getElementById('mr-err').style.display='none';
+  document.getElementById('mr-group-select').value='';
+  document.getElementById('mr-code-input').value='';
+  document.getElementById('login-myrentals').style.display='flex';
+  setTimeout(()=>document.getElementById('mr-group-select').focus(),100);
+}
+
+function checkMRLogin(){
+  const group=document.getElementById('mr-group-select').value;
+  const code=document.getElementById('mr-code-input').value.trim();
+  if(!group||!CLUB_CODES[group]){document.getElementById('mr-err').style.display='block';return;}
+  if(code!==CLUB_CODES[group]){document.getElementById('mr-err').style.display='block';return;}
+  authState.role='myrentals';
+  authState.mrGroup=group;
+  document.getElementById('login-myrentals').style.display='none';
+  document.getElementById('logout-btn').style.display='inline-block';
+  const displayName=group==='LTYA'?'LTYA':"HS Clubs — "+group;
+  document.getElementById('mr-logged-in-name').textContent=displayName;
+  const pv=authState.pendingView;
+  if(pv){showView(pv.id,pv.el);authState.pendingView=null;}
+  loadMyRentals();
+}
+
+async function loadMyRentals(){
+  const group=authState.mrGroup;
+  if(!group)return;
+  document.getElementById('mr-table').innerHTML='<tr><td colspan="5"><div class="checking-spinner" style="padding:20px">Loading rentals...</div></td></tr>';
+  const result=await api({action:'getRentals'});
+  if(result.rentals)rentals=result.rentals;
+  const myRentals=rentals.filter(r=>r.group===group);
+  // Stats
+  const scheduled=myRentals.filter(r=>r.status==='scheduled').length;
+  const pending=myRentals.filter(r=>r.status==='confirmed').length;
+  const cancelled=myRentals.filter(r=>r.status==='cancelled'||r.status==='late-cancel').length;
+  const total=myRentals.length;
+  document.getElementById('mr-stats').innerHTML=
+    '<div class="stat-card"><div class="stat-num" style="color:var(--purple)">'+scheduled+'</div><div class="stat-label">Officially booked &#10003;</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:var(--orange)">'+pending+'</div><div class="stat-label">Pending facilitator</div></div>'+
+    '<div class="stat-card"><div class="stat-num" style="color:var(--gray-400)">'+cancelled+'</div><div class="stat-label">Cancelled</div></div>'+
+    '<div class="stat-card"><div class="stat-num">'+total+'</div><div class="stat-label">Total requests</div></div>';
+  if(!myRentals.length){
+    document.getElementById('mr-table').innerHTML='';
+    document.getElementById('mr-empty').style.display='block';
+    return;
+  }
+  document.getElementById('mr-empty').style.display='none';
+  myRentals.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  document.getElementById('mr-table').innerHTML=myRentals.map(r=>{
+    const rowBg=r.status==='scheduled'?'background:#f0faf5':r.status==='cancelled'||r.status==='late-cancel'?'background:#fafafa':'';
+    return '<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong></td><td style="font-size:12px">'+r.facility+'</td><td style="font-size:12px">'+fmtTimeRange(r.start,r.end)+'</td><td style="font-size:12px">'+(r.activity||'&mdash;')+'</td><td>'+statusBadge(r.status)+'</td></tr>';
+  }).join('');
+}
+
 function logout() {
-  authState = { role: null, facEmail: null, facName: null, pendingView: null };
+  authState = { role: null, facEmail: null, facName: null, mrGroup: null, pendingView: null };
   document.getElementById('logout-btn').style.display = 'none';
   showView('request', document.querySelector('.nav-tab'));
 }
@@ -509,6 +635,39 @@ function showView(id,el){
   if(id==='roster')renderRoster();
   if(id==='invoices')renderInvoices();
 }
+function selectHSClubs(el){
+  // Reset everything
+  selectedGroup='';selectedTier='';selectedTierName='';
+  ltyaVerified=false;
+  document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('ltya-gate').style.display='none';
+  document.getElementById('hs-gate').style.display='block';
+  document.getElementById('form-body').style.display='none';
+  document.getElementById('full-form-panels').style.display='none';
+  document.getElementById('hs-code-input').value='';
+  document.getElementById('hs-code-error').style.display='none';
+  document.getElementById('hs-club-select').value='';
+}
+
+function verifyHSCode(){
+  const club=document.getElementById('hs-club-select').value;
+  const code=document.getElementById('hs-code-input').value.trim();
+  if(!club){document.getElementById('hs-code-error').style.display='block';return;}
+  if(code!==CLUB_CODES[club]){document.getElementById('hs-code-error').style.display='block';return;}
+  // Verified
+  selectedGroup=club;
+  selectedTier='tier-1';
+  selectedTierName='Reduced Level 1';
+  document.getElementById('hs-code-error').style.display='none';
+  document.getElementById('hs-gate').style.display='none';
+  document.getElementById('form-body').style.display='block';
+  document.getElementById('full-form-panels').style.display='block';
+  updateWindowBanner();
+  updateModeSwitcher();
+  updatePricePreview();
+}
+
 function verifyLTYACode(){
   const code=document.getElementById('ltya-code-input').value.trim();
   if(code===LTYA_CODE){
@@ -530,6 +689,8 @@ function selectGroup(name,tier,tierName,el){
   selectedGroup=name;selectedTier=tier;selectedTierName=tierName;
   document.querySelectorAll('.group-pill').forEach(p=>p.classList.remove('selected'));
   el.classList.add('selected');
+  // Always hide hs-gate when selecting non-HS group
+  document.getElementById('hs-gate').style.display='none';
   if(name==='LTYA'){
     ltyaVerified=false;
     document.getElementById('ltya-code-input').value='';

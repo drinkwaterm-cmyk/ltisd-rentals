@@ -789,18 +789,72 @@ async function processBulk(){
   if(!name||!email||!insurance||!org){showAlert('req-alert','error','Fill in contact info first.');return;}
   const raw=document.getElementById('csv-paste').value.trim();if(!raw){showAlert('req-alert','error','Paste CSV data or upload a file.');return;}
   const today=new Date();today.setHours(0,0,0,0);const maxDate=new Date(today);maxDate.setMonth(maxDate.getMonth()+BOOKING_WINDOW[selectedGroup]);
+
+  // ── HELPERS ──────────────────────────────────────────────────────────────
+  function parseDate(str){
+    str=(str||'').trim();
+    // YYYY-MM-DD
+    if(/^\d{4}-\d{2}-\d{2}$/.test(str))return str;
+    // M/D/YYYY or MM/DD/YYYY
+    const m=str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if(m){const[,mo,dy,yr]=m;return yr+'-'+mo.padStart(2,'0')+'-'+dy.padStart(2,'0');}
+    return null;
+  }
+  function parseTime(str){
+    str=(str||'').trim().toUpperCase();
+    if(!str)return null;
+    // Already HH:MM 24hr
+    if(/^\d{1,2}:\d{2}$/.test(str)){const[h,m]=str.split(':');return String(parseInt(h)).padStart(2,'0')+':'+m;}
+    // 12hr with AM/PM e.g. "6:00 PM", "6:00PM", "6 PM"
+    const m12=str.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/);
+    if(m12){let hr=parseInt(m12[1]);const mn=m12[2]||'00';const ampm=m12[3];if(ampm==='PM'&&hr!==12)hr+=12;if(ampm==='AM'&&hr===12)hr=0;return String(hr).padStart(2,'0')+':'+mn;}
+    return null;
+  }
+  function parseCustodian(str){
+    str=(str||'').trim().toUpperCase();
+    if(!str||str==='TBD'||str==='-'||str==='N/A')return 0;
+    return parseInt(str)||0;
+  }
+  function parseLights(str){
+    str=(str||'').trim().toLowerCase();
+    if(!str||str==='no'||str==='n'||str==='false'||str==='0')return 'no';
+    if(str==='yes'||str==='y'||str==='true'||str==='1')return 'yes';
+    return 'no';
+  }
+  function matchFacility(raw){
+    if(!raw)return null;
+    const r=raw.trim().toLowerCase();
+    // Exact match first
+    const exact=FLAT_FACILITIES.find(f=>f.toLowerCase()===r);
+    if(exact)return exact;
+    // Partial match — find facility that contains the search term or vice versa
+    const partial=FLAT_FACILITIES.find(f=>f.toLowerCase().includes(r)||r.includes(f.toLowerCase()));
+    if(partial)return partial;
+    return null;
+  }
+
   const rows=[];
-  raw.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#')).forEach((line,idx)=>{
-    const pts=line.split(',').map(s=>s.trim());if(pts.length<4){rows.push({line:idx+1,raw:line,status:'error',reason:'Need: facility, date, start, end'});return;}
-    const[facRaw,date,start,end,lights='no',custHrs='0',...actParts]=pts;
-    const facility=FLAT_FACILITIES.find(f=>f.toLowerCase()===facRaw.toLowerCase());
-    if(!facility){rows.push({line:idx+1,raw:line,status:'error',reason:'Unknown facility: "'+facRaw+'"'});return;}
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){rows.push({line:idx+1,facility,date,status:'error',reason:'Date must be YYYY-MM-DD'});return;}
+  raw.split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#')&&!l.toLowerCase().startsWith('facility')).forEach((line,idx)=>{
+    const pts=line.split(',').map(s=>s.trim());
+    if(pts.length<4){rows.push({line:idx+1,raw:line,status:'error',reason:'Need at least: facility, date, start, end'});return;}
+    const[facRaw,dateRaw,startRaw,endRaw,lightsRaw='',custRaw='',...actParts]=pts;
+    const facility=matchFacility(facRaw);
+    if(!facility){rows.push({line:idx+1,raw:line,status:'error',reason:'Unknown facility: "'+facRaw+'" — check spelling'});return;}
+    const date=parseDate(dateRaw);
+    if(!date){rows.push({line:idx+1,facility,raw:line,status:'error',reason:'Invalid date: "'+dateRaw+'" — use YYYY-MM-DD or M/D/YYYY'});return;}
+    const start=parseTime(startRaw);
+    if(!start){rows.push({line:idx+1,facility,date,status:'error',reason:'Invalid start time: "'+startRaw+'" — use 9:00 AM or 09:00'});return;}
+    const end=parseTime(endRaw);
+    if(!end){rows.push({line:idx+1,facility,date,status:'error',reason:'Invalid end time: "'+endRaw+'" — use 9:00 AM or 09:00'});return;}
+    const lights=parseLights(lightsRaw);
+    const custHrs=parseCustodian(custRaw);
+    const activity=actParts.join(',').trim();
     const reqDate=new Date(date+'T00:00:00');
     if(reqDate<today){rows.push({line:idx+1,facility,date,start,end,status:'error',reason:'Date is in the past'});return;}
-    if(reqDate>maxDate){rows.push({line:idx+1,facility,date,start,end,status:'error',reason:'Outside '+BOOKING_WINDOW[selectedGroup]+'-month window'});return;}
-    rows.push({line:idx+1,facility,date,start,end,lights,custHrs,activity:actParts.join(',').trim(),status:'pending_check'});
+    if(reqDate>maxDate){rows.push({line:idx+1,facility,date,start,end,status:'error',reason:'Outside '+BOOKING_WINDOW[selectedGroup]+'-month booking window'});return;}
+    rows.push({line:idx+1,facility,date,start,end,lights,custHrs,activity,status:'pending_check'});
   });
+
   showAlert('req-alert','info','<span class="checking-spinner">Checking '+rows.filter(r=>r.status==='pending_check').length+' dates against live calendars...</span>');
   for(const row of rows){
     if(row.status!=='pending_check')continue;
@@ -809,24 +863,42 @@ async function processBulk(){
     else if(cal.available===false){row.status='unavailable';row.reason=(cal.conflicts||[]).map(c=>c.message).join(' &middot; ');}
     else{row.status='available';row.calWarning='Calendar unreachable &mdash; verify manually';}
     row.price=calcPrice(row.facility,row.start,row.end,selectedTierName,row.lights,row.custHrs,selectedGroup);
-    row.name=name;row.email=email;row.org=org;row.insurance=insurance;
   }
   clearAlert('req-alert');
   showAlert('req-alert','info','<span class="checking-spinner">Saving confirmed rentals...</span>');
   let confirmed=0;
   for(const r of rows){
     if(r.status!=='available')continue;
-    const rental={id:String(Date.now()+Math.random()),name:r.name,email:r.email,phone:'',org:r.org,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:r.facility,date:r.date,start:r.start,end:r.end,lights:r.lights,custodianHours:parseInt(r.custHrs)||0,insurance:r.insurance,activity:r.activity,status:'confirmed',facilitator:'',facilitatorId:'',price:r.price?r.price.total:0,facilityFee:r.price?r.price.facilityFee:0,facilitatorFee:r.price?r.price.facilitatorFee:0,custodialFee:r.price?r.price.custodialFee:0,discountAmt:r.price?r.price.discountAmt:0,rateKey:r.price?r.price.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
+    const rental={id:String(Date.now()+Math.random()),name,email,phone:'',org,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:r.facility,date:r.date,start:r.start,end:r.end,lights:r.lights,custodianHours:r.custHrs||0,insurance,activity:r.activity,orgtype:document.getElementById('r-orgtype')?document.getElementById('r-orgtype').value:'',status:'confirmed',facilitator:'',facilitatorId:'',price:r.price?r.price.total:0,facilityFee:r.price?r.price.facilityFee:0,facilitatorFee:r.price?r.price.facilitatorFee:0,custodialFee:r.price?r.price.custodialFee:0,discountAmt:r.price?r.price.discountAmt:0,rateKey:r.price?r.price.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
     const saveResult=await api({action:'saveRental',...rental});
     if(saveResult.success){rentals.push(rental);confirmed++;}
   }
   clearAlert('req-alert');
-  const av=rows.filter(r=>r.status==='available').length,un=rows.filter(r=>r.status==='unavailable').length,er=rows.filter(r=>r.status==='error').length;
-  let html='<div class="card"><div class="card-title">Results</div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><span class="bulk-badge bulk-ok">'+av+' confirmed</span><span class="bulk-badge bulk-warn">'+un+' unavailable</span><span class="bulk-badge bulk-err">'+er+' errors</span></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Facility</th><th>Date</th><th>Time</th><th>Est. total</th><th>Result</th></tr></thead><tbody>';
-  rows.forEach(r=>{const badge=r.status==='available'?'<span class="bulk-badge bulk-ok">Confirmed</span>':r.status==='unavailable'?'<span class="bulk-badge bulk-warn">Unavailable</span>':'<span class="bulk-badge bulk-err">Error</span>';html+='<tr><td style="color:var(--gray-400)">'+r.line+'</td><td>'+(r.facility||r.raw||'&mdash;')+'</td><td>'+(r.date?fmtDate(r.date):'&mdash;')+'</td><td>'+(r.start&&r.end?fmtTimeRange(r.start,r.end):'&mdash;')+'</td><td>'+(r.price?'$'+r.price.total.toFixed(2):'&mdash;')+'</td><td>'+badge+(r.reason?'<br><span style="font-size:11px;color:var(--gray-600)">'+r.reason+'</span>':'')+(r.calWarning?'<br><span style="font-size:10px;color:var(--orange)">&#9888;&#65039; '+r.calWarning+'</span>':'')+'</td></tr>';});
-  html+='</tbody></table></div></div>';document.getElementById('bulk-results').innerHTML=html;
-  if(confirmed>0)showAlert('req-alert','success',confirmed+' rental(s) confirmed and saved.');
+
+  // Send bulk summary email
+  const av=rows.filter(r=>r.status==='available').length;
+  const un=rows.filter(r=>r.status==='unavailable').length;
+  const er=rows.filter(r=>r.status==='error').length;
+  if(confirmed>0){
+    const pendingRows=rows.filter(r=>r.status==='available');
+    const unavailRows=rows.filter(r=>r.status==='unavailable');
+    const errRows=rows.filter(r=>r.status==='error');
+    const summaryLines=[];
+    if(pendingRows.length){summaryLines.push('PENDING FACILITATOR ('+pendingRows.length+' dates):\n'+pendingRows.map(r=>fmtDate(r.date)+' | '+r.facility+' | '+fmtTimeRange(r.start,r.end)+(r.activity?' | '+r.activity:'')).join('\n'));}
+    if(unavailRows.length){summaryLines.push('UNAVAILABLE ('+unavailRows.length+' dates - calendar conflicts):\n'+unavailRows.map(r=>(r.date?fmtDate(r.date):'?')+' | '+(r.facility||'?')+(r.reason?' | '+r.reason:'')).join('\n'));}
+    if(errRows.length){summaryLines.push('ERRORS ('+errRows.length+' rows):\n'+errRows.map(r=>'Row '+r.line+': '+r.reason).join('\n'));}
+    await api({action:'notifyBulk',contactEmail:email,contactName:name,group:selectedGroup,confirmed:String(confirmed),unavailable:String(un),errors:String(er),summary:summaryLines.join('\n\n')});
+  }
+
+  // Show results table
+  let html='<div class="card"><div class="card-title">Bulk upload results</div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><span class="bulk-badge bulk-ok">'+av+' pending facilitator</span><span class="bulk-badge bulk-warn">'+un+' unavailable</span><span class="bulk-badge bulk-err">'+er+' errors</span></div><div class="table-wrap"><table><thead><tr><th>#</th><th>Facility</th><th>Date</th><th>Time</th><th>Activity</th><th>Est. total</th><th>Result</th></tr></thead><tbody>';
+  rows.forEach(r=>{const badge=r.status==='available'?'<span class="bulk-badge bulk-ok">Pending facilitator</span>':r.status==='unavailable'?'<span class="bulk-badge bulk-warn">Unavailable</span>':'<span class="bulk-badge bulk-err">Error</span>';html+='<tr><td style="color:var(--gray-400)">'+r.line+'</td><td style="font-size:12px">'+(r.facility||r.raw||'&mdash;')+'</td><td style="font-size:12px">'+(r.date?fmtDate(r.date):'&mdash;')+'</td><td style="font-size:12px">'+(r.start&&r.end?fmtTimeRange(r.start,r.end):'&mdash;')+'</td><td style="font-size:12px">'+(r.activity||'&mdash;')+'</td><td style="font-size:12px">'+(r.price?'$'+r.price.total.toFixed(2):'&mdash;')+'</td><td>'+badge+(r.reason?'<br><span style="font-size:11px;color:var(--gray-600)">'+r.reason+'</span>':'')+(r.calWarning?'<br><span style="font-size:10px;color:var(--orange)">&#9888;&#65039; '+r.calWarning+'</span>':'')+'</td></tr>';});
+  html+='</tbody></table></div></div>';
+  document.getElementById('bulk-results').innerHTML=html;
+  if(confirmed>0)showAlert('req-alert','success',confirmed+' rental(s) confirmed and saved. A summary email has been sent to '+email+'.');
+  else showAlert('req-alert','warning','No rentals were confirmed. Check the results below.');
 }
+
 
 async function loadFacilitatorView(){
   const list=document.getElementById('fac-list');

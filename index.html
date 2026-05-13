@@ -376,10 +376,11 @@ tr:hover td{background:#fef9f9}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
       <div class="card-title" style="margin-bottom:0">All rental requests</div>
       <button class="btn btn-ghost btn-sm" onclick="loadMyRentals()">&#8635; Refresh</button>
+      <button class="btn btn-ghost btn-sm" id="mr-download-btn" style="display:none" onclick="downloadMyRentals()">&#11015;&#65039; Download CSV</button>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Date</th><th>Facility</th><th>Time</th><th>Activity</th><th>Status</th></tr></thead>
+        <thead><tr><th>Date</th><th>Facility</th><th>Time</th><th>Activity</th><th>Facilitator</th><th>Status</th></tr></thead>
         <tbody id="mr-table"></tbody>
       </table>
     </div>
@@ -573,6 +574,7 @@ async function loadMyRentals(){
     '<div class="stat-card"><div class="stat-num" style="color:var(--orange)">'+pending+'</div><div class="stat-label">Pending facilitator</div></div>'+
     '<div class="stat-card"><div class="stat-num" style="color:var(--gray-400)">'+cancelled+'</div><div class="stat-label">Cancelled</div></div>'+
     '<div class="stat-card"><div class="stat-num">'+total+'</div><div class="stat-label">Total requests</div></div>';
+  document.getElementById('mr-download-btn').style.display='none';
   if(!myRentals.length){
     document.getElementById('mr-table').innerHTML='';
     document.getElementById('mr-empty').style.display='block';
@@ -580,10 +582,50 @@ async function loadMyRentals(){
   }
   document.getElementById('mr-empty').style.display='none';
   myRentals.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  // Build facilitator lookup map for phone numbers
+  const facMap={};
+  facilitators.forEach(f=>{facMap[f.name]={phone:f.phone||'',email:f.email||''};});
+
   document.getElementById('mr-table').innerHTML=myRentals.map(r=>{
     const rowBg=r.status==='scheduled'?'background:#f0faf5':r.status==='cancelled'||r.status==='late-cancel'?'background:#fafafa':'';
-    return '<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong></td><td style="font-size:12px">'+r.facility+'</td><td style="font-size:12px">'+fmtTimeRange(r.start,r.end)+'</td><td style="font-size:12px">'+(r.activity||'&mdash;')+'</td><td>'+statusBadge(r.status)+'</td></tr>';
+    const facInfo=r.facilitator?facMap[r.facilitator]:null;
+    const facCell=r.facilitator
+      ?r.facilitator+(facInfo&&facInfo.phone?'<br><span style="font-size:11px;color:var(--gray-400)">'+facInfo.phone+'</span>':'')
+      :'<span style="color:var(--orange);font-size:12px">Pending</span>';
+    return '<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong></td><td style="font-size:12px">'+r.facility+'</td><td style="font-size:12px">'+fmtTimeRange(r.start,r.end)+'</td><td style="font-size:12px">'+(r.activity||'&mdash;')+'</td><td style="font-size:12px">'+facCell+'</td><td>'+statusBadge(r.status)+'</td></tr>';
   }).join('');
+  window._mrRentals=myRentals;
+  window._mrFacMap=facMap;
+  document.getElementById('mr-download-btn').style.display='inline-flex';
+}
+
+function downloadMyRentals(){
+  const rentals=window._mrRentals||[];
+  const facMap=window._mrFacMap||{};
+  if(!rentals.length){alert('No rentals to download.');return;}
+  const headers=['Date','Facility','Time','Activity','Status','Facilitator','Facilitator Phone'];
+  const rows=rentals.map(r=>{
+    const facInfo=r.facilitator?facMap[r.facilitator]:null;
+    const status={scheduled:'Officially Booked',confirmed:'Pending Facilitator',cancelled:'Cancelled','late-cancel':'Late Cancel'}[r.status]||r.status;
+    return [
+      fmtDate(r.date),
+      r.facility||'',
+      fmtTimeRange(r.start,r.end),
+      r.activity||'',
+      status,
+      r.facilitator||'Pending',
+      facInfo&&facInfo.phone?facInfo.phone:''
+    ].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',');
+  });
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const group=authState.mrGroup||'rentals';
+  a.download='LTISD_Rentals_'+group.replace(/[^a-z0-9]/gi,'_')+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function logout() {

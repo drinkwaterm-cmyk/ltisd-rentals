@@ -332,6 +332,18 @@ tr:hover td{background:#fef9f9}
           </select>
         </div>
       </div>
+      <!-- Combined gym time fields -->
+      <div id="combined-gym-times" style="display:none;background:var(--sky);border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-bottom:12px">
+        <div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:10px">&#127944; Combined Gym — enter times separately for billing</div>
+        <div class="field-row">
+          <div class="field"><label>Main Gym start <span class="req">*</span></label><input type="time" id="r-main-start" onchange="updatePricePreview()"></div>
+          <div class="field"><label>Main Gym end <span class="req">*</span></label><input type="time" id="r-main-end" onchange="updatePricePreview()"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Aux Gym start <span class="req">*</span></label><input type="time" id="r-aux-start" onchange="updatePricePreview()"></div>
+          <div class="field"><label>Aux Gym end <span class="req">*</span></label><input type="time" id="r-aux-end" onchange="updatePricePreview()"></div>
+        </div>
+      </div>
       <div style="padding:8px 12px;background:var(--orange-light);border-radius:8px;font-size:12px;color:var(--orange);margin-bottom:12px">
         &#9888;&#65039; <strong>Please note:</strong> LTISD does not provide balls, equipment, or supplies. Renters are responsible for bringing all necessary equipment.
       </div>
@@ -380,7 +392,7 @@ tr:hover td{background:#fef9f9}
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Date</th><th>Facility</th><th>Time</th><th>Activity</th><th>Facilitator</th><th>Status</th></tr></thead>
+        <thead><tr><th>Date</th><th>Facility</th><th>Time</th><th>Activity</th><th>Facilitator</th><th>Status</th><th></th></tr></thead>
         <tbody id="mr-table"></tbody>
       </table>
     </div>
@@ -430,6 +442,8 @@ tr:hover td{background:#fef9f9}
 <div class="modal-bg" id="modal-avail"><div class="modal"><div class="modal-title" id="modal-title"></div><div class="modal-sub" id="modal-sub"></div><div id="modal-body"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-avail')">Close</button><button class="btn btn-primary" id="modal-confirm-btn" style="display:none" onclick="confirmRental()">Confirm &amp; notify facilitators</button></div></div></div>
 <div class="modal-bg" id="modal-cancel"><div class="modal"><div class="modal-title">Cancel this rental?</div><div class="modal-sub">This cannot be undone.</div><div id="cancel-body"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-cancel')">Keep rental</button><button class="btn btn-warn" onclick="executeCancel()">Yes, cancel</button></div></div></div>
 <div class="modal-bg" id="modal-facilitator"><div class="modal"><div class="modal-title" id="fac-modal-title">Add facilitator</div><div class="modal-sub">Set name, contact info, and approved facilities.</div><div class="field-row"><div class="field"><label>Full name <span class="req">*</span></label><input type="text" id="fm-name" placeholder="Full name"></div><div class="field"><label>Email <span class="req">*</span></label><input type="email" id="fm-email" placeholder="email@ltisdschools.org"></div></div><div class="field"><label>Phone</label><input type="tel" id="fm-phone" placeholder="(512) 000-0000"></div><div style="margin-bottom:12px"><div style="font-size:13px;font-weight:500;margin-bottom:8px">Approved facilities <span class="req">*</span></div><div style="display:flex;gap:7px;margin-bottom:10px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="selectAllFacilities()">Select all</button><button class="btn btn-ghost btn-sm" onclick="clearAllFacilities()">Clear all</button></div><div id="fac-modal-schools"></div></div><div id="fac-modal-alert"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-facilitator')">Cancel</button><button class="btn btn-primary" id="save-fac-btn" onclick="saveFacilitator()">Save facilitator</button></div></div></div>
+<div class="modal-bg" id="modal-modify"><div class="modal"><div class="modal-title">Modify Rental Time</div><div class="modal-sub" id="modify-sub">Update the start and end time for this rental.</div><div id="modify-body"></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-modify')">Cancel</button><button class="btn btn-primary" onclick="executeModify()">Save &amp; notify facilitator</button></div></div></div>
+
 <div class="modal-bg" id="modal-agreement"><div class="modal"><div class="modal-title">LTISD Facility Use Agreement</div><div class="modal-sub">Please read the agreement, then check the box to acknowledge.</div><div class="agreement-scroll"><h3>Preface</h3><p>Lake Travis ISD Board Policies GKD (Legal) and GKD (Local) address Non-School Use of School Facilities. The District shall permit non-school use of designated facilities for educational, recreational, civic, or social activities when these do not conflict with school use or applicable laws, policies, or rules.</p><h3>Application Requirements</h3><p>Applications must be filed no less than 21 days prior to the requested date(s) and no more than 90 days in advance. Not officially booked until signed by the Community Relations Liaison or Director/Assistant Director of Athletics.</p><h3>Scheduling Priorities</h3><p>District educational programs and extracurricular activities always have priority. The Community Relations Liaison or Athletic Director may cancel a scheduled non-school use if an unexpected conflict arises.</p><h3>Rental Costs &amp; Payment</h3><p>Invoices issued monthly after completed events. No deposit required. Payments mailed to: Lake Travis High School &mdash; ATTN: Athletics, 3324 Ranch Road 620 South, Austin, TX 78738. Cancellations within 24 hours incur the full facilitator fee. 6% penalty for payments 30 days past due + 15% administrative/support services penalty.</p><h3>Conditions of Use</h3><p>Use only leased area &middot; Do not exceed capacity &middot; No transfer to third parties &middot; Representative present at all times &middot; No equipment storage &middot; No pets without approval &middot; No smoking, drugs, or alcohol &middot; No open flames or firearms &middot; Comply with all parking rules and applicable laws.</p><h3>Insurance Requirements</h3><p>Commercial General Liability: $1M per occurrence / $1M aggregate. LTISD listed as Additional Insured. Auto Liability: $500K CSL if vehicles on property. Workers' Comp at statutory limits if employees on property.</p><h3>Indemnity</h3><p>Lessee agrees to indemnify and hold harmless Lake Travis ISD, its agents, trustees, officers, and employees from any and all claims arising out of or connected with the use of LTISD facilities.</p></div><div class="agreement-check"><input type="checkbox" id="agree-check" onchange="updateAgreementStatus()"><label for="agree-check">I have read and agree to all terms of the LTISD Facility Use Agreement, including insurance requirements, cancellation policy, and indemnity.</label></div><div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal('modal-agreement')">Cancel</button><button class="btn btn-primary" id="agreement-ok-btn" disabled style="opacity:.5;cursor:not-allowed" onclick="acknowledgeAgreement()">I Acknowledge &amp; Continue</button></div></div></div>
 
 <script>
@@ -592,11 +606,85 @@ async function loadMyRentals(){
     const facCell=r.facilitator
       ?r.facilitator+(facInfo&&facInfo.phone?'<br><span style="font-size:11px;color:var(--gray-400)">'+facInfo.phone+'</span>':'')
       :'<span style="color:var(--orange);font-size:12px">Pending</span>';
-    return '<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong></td><td style="font-size:12px">'+r.facility+'</td><td style="font-size:12px">'+fmtTimeRange(r.start,r.end)+'</td><td style="font-size:12px">'+(r.activity||'&mdash;')+'</td><td style="font-size:12px">'+facCell+'</td><td>'+statusBadge(r.status)+'</td></tr>';
+    const isLTYA=authState.mrGroup==='LTYA';
+    const canModify=isLTYA&&r.status==='scheduled';
+    const canCancel=isLTYA&&(r.status==='scheduled'||r.status==='confirmed');
+    const actionBtns=(canModify||canCancel)
+      ?'<td style="display:flex;flex-direction:column;gap:4px;padding:8px">'
+        +(canModify?('<button class="btn btn-ghost btn-sm" onclick="openModify(this)" data-id="'+r.id+'">Modify time</button>'):'')
+        +(canCancel?('<button class="btn-danger-sm" onclick="promptCancelMyRental(this)" data-id="'+r.id+'">Cancel</button>'):'')
+        +'</td>'
+      :'<td></td>';
+    return '<tr style="'+rowBg+'"><td><strong>'+fmtDate(r.date)+'</strong></td><td style="font-size:12px">'+r.facility+'</td><td style="font-size:12px">'+fmtTimeRange(r.start,r.end)+'</td><td style="font-size:12px">'+(r.activity||'&mdash;')+'</td><td style="font-size:12px">'+facCell+'</td><td>'+statusBadge(r.status)+'</td>'+actionBtns+'</tr>';
   }).join('');
   window._mrRentals=myRentals;
   window._mrFacMap=facMap;
   document.getElementById('mr-download-btn').style.display='inline-flex';
+}
+
+let modifyTargetId=null;
+
+function openModify(el){
+  const rentalId=el.dataset?el.dataset.id:el;
+  modifyTargetId=rentalId;
+  const r=(window._mrRentals||[]).find(x=>String(x.id)===String(rentalId));
+  if(!r)return;
+  document.getElementById('modify-sub').textContent=r.facility+' on '+fmtDate(r.date);
+  document.getElementById('modify-body').innerHTML=
+    '<div class="field-row" style="margin-top:10px">'
+    +'<div class="field"><label>New start time <span class="req">*</span></label><input type="time" id="modify-start" value="'+r.start+'"></div>'
+    +'<div class="field"><label>New end time <span class="req">*</span></label><input type="time" id="modify-end" value="'+r.end+'"></div>'
+    +'</div>'
+    +'<div id="modify-alert"></div>';
+  document.getElementById('modal-modify').classList.add('open');
+}
+
+async function executeModify(){
+  const r=(window._mrRentals||[]).find(x=>String(x.id)===String(modifyTargetId));
+  if(!r)return;
+  const newStart=document.getElementById('modify-start').value;
+  const newEnd=document.getElementById('modify-end').value;
+  if(!newStart||!newEnd){document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">Please enter both start and end times.</div>';return;}
+  const[sh,sm]=newStart.split(':').map(Number),[eh,em]=newEnd.split(':').map(Number);
+  if((eh*60+em)<=(sh*60+sm)){document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">End time must be after start time.</div>';return;}
+  document.getElementById('modify-alert').innerHTML='<div class="alert alert-info"><span class="checking-spinner">Saving...</span></div>';
+  const oldStart=r.start, oldEnd=r.end;
+  const result=await api({action:'updateRental',id:String(r.id),start:newStart,end:newEnd});
+  if(result.success){
+    r.start=newStart;r.end=newEnd;
+    closeModal('modal-modify');
+    // Notify facilitator of time change
+    if(r.facilitator){
+      const facInfo=(window._mrFacMap||{})[r.facilitator];
+      const facEmail=facInfo?facInfo.email:'';
+      if(facEmail){
+        await api({action:'notifyModify',facility:r.facility,date:r.date,
+          oldStart,oldEnd,newStart,newEnd,
+          group:r.group,contactName:r.name,contactEmail:r.email,
+          facilitatorName:r.facilitator,facilitatorEmail:facEmail});
+      }
+    }
+    showAlert('mr-alert','success','Time updated to '+fmtTime(newStart)+' – '+fmtTime(newEnd)+'. Facilitator has been notified.');
+    loadMyRentals();
+  } else {
+    document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">Could not save: '+(result.error||'Unknown error')+'</div>';
+  }
+}
+
+function promptCancelMyRental(el){
+  const rentalId=el.dataset?el.dataset.id:el;
+  modifyTargetId=rentalId;
+  const r=(window._mrRentals||[]).find(x=>String(x.id)===String(rentalId));
+  if(!r)return;
+  const dt=new Date(r.date+'T'+String(r.start)+':00'),hoursUntil=(dt-new Date())/(1000*60*60);
+  const isLate=hoursUntil<=24&&hoursUntil>0;
+  document.getElementById('cancel-body').innerHTML=
+    (isLate?'<div class="alert alert-warning"><strong>Late cancellation — within 24 hours.</strong> Facilitator fee of <strong>$'+(r.facilitatorFee||0).toFixed(2)+'</strong> will still be invoiced.</div>'
+           :'<div class="alert alert-info">More than 24 hours out. No fees will be charged.</div>')
+    +'<div style="margin-top:8px;font-size:13px;color:var(--gray-600)">'+r.facility+' · '+fmtDate(r.date)+' · '+r.group+'</div>';
+  // Override executeCancel to refresh My Rentals after
+  cancelTargetId=rentalId;
+  document.getElementById('modal-cancel').classList.add('open');
 }
 
 function downloadMyRentals(){
@@ -636,10 +724,10 @@ function logout() {
 
 // ── FACILITIES & RATES ────────────────────────────────────────────────────────
 const ALL_FACILITIES = {
-  'Lake Travis High School':['LTHS Cav Stadium','LTHS Round Gym','LTHS Aux Gym','LTHS Competition Gym','LTHS Track Stadium','LTHS Grass Practice Field','LTHS Baseball Field','LTHS Softball Field','LTHS Wrestling Room'],
-  'Bee Cave Middle School':['BCMS Main Gym','BCMS Aux Gym','BCMS Track Field','BCMS Grass'],
-  'Lake Travis Middle School':['LTMS Main Gym','LTMS Aux Gym','LTMS Track Field'],
-  'Hudson Bend Middle School':['HBMS Main Gym','HBMS Aux Gym','HBMS Track Field'],
+  'Lake Travis High School':['LTHS Cav Stadium','LTHS Round Gym','LTHS Aux Gym','LTHS Competition Gym','LTHS Main & Aux Gym','LTHS Track Stadium','LTHS Grass Practice Field','LTHS Baseball Field','LTHS Softball Field','LTHS Wrestling Room'],
+  'Bee Cave Middle School':['BCMS Main Gym','BCMS Aux Gym','BCMS Main & Aux Gym','BCMS Track Field','BCMS Grass'],
+  'Lake Travis Middle School':['LTMS Main Gym','LTMS Aux Gym','LTMS Main & Aux Gym','LTMS Track Field'],
+  'Hudson Bend Middle School':['HBMS Main Gym','HBMS Aux Gym','HBMS Main & Aux Gym','HBMS Track Field'],
   'Elementary Schools':['BCE Gym','LPE Gym','LTE Gym','SHE Gym','RHE Gym','WCHE Gym','LWE Gym']
 };
 const FAC_GRID_IDS = {'Lake Travis High School':'fac-lths','Bee Cave Middle School':'fac-bcms','Lake Travis Middle School':'fac-ltms','Hudson Bend Middle School':'fac-hbms','Elementary Schools':'fac-elem'};
@@ -649,8 +737,32 @@ const TIER_INDEX = {'Reduced Level 1':0,'Reduced Level 2':1,'Reduced Level 3':2,
 const FACILITATOR_RATE=46, CUSTODIAL_RATE=31, LTYA_DISC=0.25;
 const BOOKING_WINDOW = {'LTYA':2,'HS Clubs':2,'Special Olympics':1,'Non-LTYA Youth League':1,'General Public':1};
 
-function getRateKey(f,lights){const fl=f.toLowerCase(),L=lights==='yes';if(fl==='lths cav stadium')return L?'Stadium - Varsity Lights':'Stadium - Varsity No Lights';if(fl==='lths track stadium')return L?'Stadium - SubVarsity Lights':'Stadium - SubVarsity No Lights';if(fl.includes('baseball')||fl.includes('softball'))return L?'Baseball Lights':'Baseball No Lights';if(fl.includes('track field'))return 'Track Lane';if(fl.includes('grass'))return 'Practice Field - Secondary';if(fl==='lths round gym'||fl==='lths competition gym')return 'Gym - Secondary Main';if(fl==='lths aux gym'||fl==='lths wrestling room')return 'Gym - Secondary Aux';if(fl.includes('main gym'))return 'Gym - Secondary Main';if(fl.includes('aux gym'))return 'Gym - Secondary Aux';const ep=['bce','lpe','lte','she','rhe','wche','lwe'];if(ep.some(p=>fl.startsWith(p)))return 'Gym - Elementary';return 'Gym - Secondary Main';}
-function calcPrice(facility,start,end,tierName,lights,custodianHours,group){if(!start||!end)return null;const[sh,sm]=start.split(':').map(Number),[eh,em]=end.split(':').map(Number);const hours=((eh*60+em)-(sh*60+sm))/60;if(hours<=0)return null;const rateKey=getRateKey(facility,lights);const rates=RATE_MAP[rateKey]||[26,52,103,206];const idx=TIER_INDEX[tierName]??3,baseRate=rates[idx];let facilityFee=baseRate*hours,discountAmt=0;if(group==='LTYA'){discountAmt=facilityFee*LTYA_DISC;facilityFee-=discountAmt;}const facilitatorFee=FACILITATOR_RATE*hours;const custodialFee=(parseInt(custodianHours)||0)*CUSTODIAL_RATE;return{hours,baseRate,rateKey,facilityFee,discountAmt,facilitatorFee,custodialFee,total:facilityFee+facilitatorFee+custodialFee};}
+function isCombinedGym(f){return f&&f.toLowerCase().includes('main & aux gym');}
+function getRateKey(f,lights){const fl=f.toLowerCase(),L=lights==='yes';if(fl==='lths cav stadium')return L?'Stadium - Varsity Lights':'Stadium - Varsity No Lights';if(fl==='lths track stadium')return L?'Stadium - SubVarsity Lights':'Stadium - SubVarsity No Lights';if(fl.includes('baseball')||fl.includes('softball'))return L?'Baseball Lights':'Baseball No Lights';if(fl.includes('track field'))return 'Track Lane';if(fl.includes('grass'))return 'Practice Field - Secondary';if(fl==='lths round gym'||fl==='lths competition gym')return 'Gym - Secondary Main';if(fl==='lths aux gym'||fl==='lths wrestling room')return 'Gym - Secondary Aux';if(fl.includes('main & aux gym'))return 'Gym - Secondary Main';if(fl.includes('main gym'))return 'Gym - Secondary Main';if(fl.includes('aux gym'))return 'Gym - Secondary Aux';const ep=['bce','lpe','lte','she','rhe','wche','lwe'];if(ep.some(p=>fl.startsWith(p)))return 'Gym - Elementary';return 'Gym - Secondary Main';}
+function calcPrice(facility,start,end,tierName,lights,custodianHours,group,mainStart,mainEnd,auxStart,auxEnd){
+  if(isCombinedGym(facility)){
+    // Calculate main and aux separately
+    if(!mainStart||!mainEnd||!auxStart||!auxEnd)return null;
+    const school=facility.split(' ')[0]; // LTHS, BCMS, etc.
+    const mainFac=school+' Main Gym', auxFac=school+' Aux Gym';
+    const pMain=calcPriceSingle(mainFac,mainStart,mainEnd,tierName,lights,0,group);
+    const pAux=calcPriceSingle(auxFac,auxStart,auxEnd,tierName,lights,0,group);
+    if(!pMain||!pAux)return null;
+    // One facilitator covers both — use the longer duration
+    const totalHours=Math.max(pMain.hours,pAux.hours);
+    const facilitatorFee=FACILITATOR_RATE*totalHours;
+    const custodialFee=(parseInt(custodianHours)||0)*CUSTODIAL_RATE;
+    const facilityFee=pMain.facilityFee+pAux.facilityFee;
+    const discountAmt=pMain.discountAmt+pAux.discountAmt;
+    return{hours:totalHours,mainHours:pMain.hours,auxHours:pAux.hours,
+      mainRate:pMain.baseRate,auxRate:pAux.baseRate,
+      facilityFee,discountAmt,facilitatorFee,custodialFee,
+      total:facilityFee+facilitatorFee+custodialFee,isCombined:true,
+      mainStart,mainEnd,auxStart,auxEnd};
+  }
+  return calcPriceSingle(facility,start,end,tierName,lights,custodianHours,group);
+}
+function calcPriceSingle(facility,start,end,tierName,lights,custodianHours,group){if(!start||!end)return null;const[sh,sm]=start.split(':').map(Number),[eh,em]=end.split(':').map(Number);const hours=((eh*60+em)-(sh*60+sm))/60;if(hours<=0)return null;const rateKey=getRateKey(facility,lights);const rates=RATE_MAP[rateKey]||[26,52,103,206];const idx=TIER_INDEX[tierName]??3,baseRate=rates[idx];let facilityFee=baseRate*hours,discountAmt=0;if(group==='LTYA'){discountAmt=facilityFee*LTYA_DISC;facilityFee-=discountAmt;}const facilitatorFee=FACILITATOR_RATE*hours;const custodialFee=(parseInt(custodianHours)||0)*CUSTODIAL_RATE;return{hours,baseRate,rateKey,facilityFee,discountAmt,facilitatorFee,custodialFee,total:facilityFee+facilitatorFee+custodialFee};}
 
 let selectedFacility='LTHS Round Gym',selectedGroup='',selectedTier='',selectedTierName='';
 let agreementAcknowledged=false,pendingRental=null,cancelTargetId=null,editFacilitatorId=null;
@@ -767,11 +879,44 @@ function updateOrgTypeMessage(){
   document.getElementById('nonprofit-notice').style.display=val==='Non-profit organization'?'block':'none';
 }
 
-function selectFacility(name,el){selectedFacility=name;document.querySelectorAll('.facility-tile').forEach(t=>t.classList.remove('selected'));el.classList.add('selected');const bar=document.getElementById('selected-facility-bar');bar.classList.add('visible');document.getElementById('selected-facility-name').textContent=name;}
+function selectFacility(name,el){
+  selectedFacility=name;
+  document.querySelectorAll('.facility-tile').forEach(t=>t.classList.remove('selected'));
+  el.classList.add('selected');
+  const bar=document.getElementById('selected-facility-bar');
+  bar.classList.add('visible');
+  document.getElementById('selected-facility-name').textContent=name;
+  // Show combined gym time fields if applicable
+  const isCombined=isCombinedGym(name);
+  document.getElementById('combined-gym-times').style.display=isCombined?'block':'none';
+  // Show/hide main time fields label
+  const mainTimeNote=document.getElementById('main-time-note');
+  if(mainTimeNote)mainTimeNote.style.display=isCombined?'block':'none';
+  updatePricePreview();
+}
 function showAgreementModal(){document.getElementById('agree-check').checked=false;const b=document.getElementById('agreement-ok-btn');b.disabled=true;b.style.opacity='0.5';b.style.cursor='not-allowed';document.getElementById('modal-agreement').classList.add('open');}
 function updateAgreementStatus(){const checked=document.getElementById('agree-check').checked;const b=document.getElementById('agreement-ok-btn');b.disabled=!checked;b.style.opacity=checked?'1':'0.5';b.style.cursor=checked?'pointer':'not-allowed';}
 function acknowledgeAgreement(){agreementAcknowledged=true;closeModal('modal-agreement');const s='<span style="color:var(--green);font-weight:500">&#10003; Agreement acknowledged</span>';document.getElementById('agreement-status').innerHTML=s;if(document.getElementById('bulk-agreement-status'))document.getElementById('bulk-agreement-status').innerHTML=s;const sb=document.getElementById('submit-btn');sb.disabled=false;sb.style.opacity='1';sb.style.cursor='pointer';const bb=document.getElementById('bulk-submit-btn');if(bb){bb.disabled=false;bb.style.opacity='1';bb.style.cursor='pointer';}}
-function updatePricePreview(){const start=document.getElementById('r-start').value,end=document.getElementById('r-end').value,lights=document.getElementById('r-lights').value,cust=document.getElementById('r-custodian').value;const p=calcPrice(selectedFacility,start,end,selectedTierName,lights,cust,selectedGroup);const el=document.getElementById('price-preview');if(!p){el.innerHTML='';return;}el.innerHTML='<div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-top:10px;border-left:3px solid var(--primary)"><div style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Estimated cost &mdash; '+selectedTierName+'</div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+selectedFacility+' &middot; '+p.hours+'h &times; $'+p.baseRate+'/hr'+(p.discountAmt>0?' <span style="color:var(--green);font-size:10px">&minus;25% LTYA</span>':'')+'</span><span>$'+p.facilityFee.toFixed(2)+'</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Facilitator ($46/hr &times; '+p.hours+'h &mdash; incl. open &amp; close)</span><span>$'+p.facilitatorFee.toFixed(2)+'</span></div>'+(p.custodialFee>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Custodial ($31/hr &times; '+parseInt(cust)+'h)</span><span>$'+p.custodialFee.toFixed(2)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;padding:6px 0 0;font-weight:600;font-size:13px;color:var(--black)"><span>Estimated total</span><span>$'+p.total.toFixed(2)+'</span></div><div style="margin-top:6px;padding:5px 9px;background:var(--orange-light);border-radius:6px;font-size:11px;color:var(--orange)">No deposit &middot; Invoiced monthly after events &middot; Late cancel = facilitator fee ($'+p.facilitatorFee.toFixed(2)+') owed</div></div>';}
+function updatePricePreview(){
+  const start=document.getElementById('r-start').value,end=document.getElementById('r-end').value,lights=document.getElementById('r-lights').value,cust=document.getElementById('r-custodian').value;
+  const mainStart=document.getElementById('r-main-start')?document.getElementById('r-main-start').value:'';
+  const mainEnd=document.getElementById('r-main-end')?document.getElementById('r-main-end').value:'';
+  const auxStart=document.getElementById('r-aux-start')?document.getElementById('r-aux-start').value:'';
+  const auxEnd=document.getElementById('r-aux-end')?document.getElementById('r-aux-end').value:'';
+  const p=calcPrice(selectedFacility,start,end,selectedTierName,lights,cust,selectedGroup,mainStart,mainEnd,auxStart,auxEnd);
+  const el=document.getElementById('price-preview');if(!p){el.innerHTML='';return;}if(p.isCombined){
+    const school=selectedFacility.split(' ')[0];
+    const mainShare=(p.facilityFee*(p.mainHours/(p.mainHours+p.auxHours))).toFixed(2);
+    const auxShare=(p.facilityFee*(p.auxHours/(p.mainHours+p.auxHours))).toFixed(2);
+    el.innerHTML='<div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-top:10px;border-left:3px solid var(--primary)"><div style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Estimated cost &mdash; '+selectedTierName+' (Combined Gym)</div>'
+      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+school+' Main Gym &middot; '+p.mainHours+'h &times; $'+p.mainRate+'/hr</span><span>$'+mainShare+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+school+' Aux Gym &middot; '+p.auxHours+'h &times; $'+p.auxRate+'/hr</span><span>$'+auxShare+'</span></div>'
+      +(p.discountAmt>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px;color:var(--green)"><span>LTYA 25% discount</span><span>-$'+p.discountAmt.toFixed(2)+'</span></div>':'')
+      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Facilitator ($46/hr &times; '+p.hours+'h &mdash; one facilitator, incl. open &amp; close)</span><span>$'+p.facilitatorFee.toFixed(2)+'</span></div>'
+      +(p.custodialFee>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Custodial ($31/hr &times; '+parseInt(cust)+'h)</span><span>$'+p.custodialFee.toFixed(2)+'</span></div>':'')
+      +'<div style="display:flex;justify-content:space-between;padding:6px 0 0;font-weight:600;font-size:13px;color:var(--black)"><span>Estimated total</span><span>$'+p.total.toFixed(2)+'</span></div>'
+      +'<div style="margin-top:6px;padding:5px 9px;background:var(--orange-light);border-radius:6px;font-size:11px;color:var(--orange)">No deposit &middot; Late cancel = facilitator fee ($'+p.facilitatorFee.toFixed(2)+') owed</div></div>';
+  } else {el.innerHTML='<div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-top:10px;border-left:3px solid var(--primary)"><div style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Estimated cost &mdash; '+selectedTierName+'</div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+selectedFacility+' &middot; '+p.hours+'h &times; $'+p.baseRate+'/hr'+(p.discountAmt>0?' <span style="color:var(--green);font-size:10px">&minus;25% LTYA</span>':'')+'</span><span>$'+p.facilityFee.toFixed(2)+'</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Facilitator ($46/hr &times; '+p.hours+'h &mdash; incl. open &amp; close)</span><span>$'+p.facilitatorFee.toFixed(2)+'</span></div>'+(p.custodialFee>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Custodial ($31/hr &times; '+parseInt(cust)+'h)</span><span>$'+p.custodialFee.toFixed(2)+'</span></div>':'')+'<div style="display:flex;justify-content:space-between;padding:6px 0 0;font-weight:600;font-size:13px;color:var(--black)"><span>Estimated total</span><span>$'+p.total.toFixed(2)+'</span></div><div style="margin-top:6px;padding:5px 9px;background:var(--orange-light);border-radius:6px;font-size:11px;color:var(--orange)">No deposit &middot; Invoiced monthly after events &middot; Late cancel = facilitator fee ($'+p.facilitatorFee.toFixed(2)+') owed</div></div>';}}
 
 async function submitRequest(){
   if(!agreementAcknowledged){showAlert('req-alert','error','Acknowledge the Facility Use Agreement first.');return;}
@@ -791,7 +936,13 @@ async function submitRequest(){
   const calResult=await api({action:'check',facility:selectedFacility,date,startTime:start,endTime:end});
   submitBtn.disabled=false;submitBtn.style.opacity='1';clearAlert('req-alert');
   const p=calcPrice(selectedFacility,start,end,selectedTierName,lights,custodian,selectedGroup);
-  pendingRental={id:String(Date.now()),name,email,phone,org,insurance,orgtype,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:selectedFacility,date,start,end,lights,custodianHours:parseInt(custodian)||0,attendance:document.getElementById('r-attendance').value,activity:sport+' — '+eventtype,status:'pending',facilitator:'',facilitatorId:'',price:p?p.total:0,facilityFee:p?p.facilityFee:0,facilitatorFee:p?p.facilitatorFee:0,custodialFee:p?p.custodialFee:0,discountAmt:p?p.discountAmt:0,rateKey:p?p.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
+  const mainStart=document.getElementById('r-main-start')?document.getElementById('r-main-start').value:'';
+  const mainEnd=document.getElementById('r-main-end')?document.getElementById('r-main-end').value:'';
+  const auxStart=document.getElementById('r-aux-start')?document.getElementById('r-aux-start').value:'';
+  const auxEnd=document.getElementById('r-aux-end')?document.getElementById('r-aux-end').value:'';
+  if(isCombinedGym(selectedFacility)&&(!mainStart||!mainEnd||!auxStart||!auxEnd)){showAlert('req-alert','error','Please enter times for both Main Gym and Aux Gym.');return;}
+  const combinedActivity=isCombinedGym(selectedFacility)?'Main Gym: '+fmtTime(mainStart)+'-'+fmtTime(mainEnd)+' | Aux Gym: '+fmtTime(auxStart)+'-'+fmtTime(auxEnd):'';
+  pendingRental={id:String(Date.now()),name,email,phone,org,insurance,orgtype,group:selectedGroup,tier:selectedTier,tierName:selectedTierName,facility:selectedFacility,date,start:isCombinedGym(selectedFacility)?mainStart:start,end:isCombinedGym(selectedFacility)?mainEnd:end,lights,custodianHours:parseInt(custodian)||0,attendance:document.getElementById('r-attendance').value,activity:sport+' — '+eventtype+(combinedActivity?' | '+combinedActivity:''),mainStart:mainStart||'',mainEnd:mainEnd||'',auxStart:auxStart||'',auxEnd:auxEnd||'',status:'pending',facilitator:'',facilitatorId:'',price:p?p.total:0,facilityFee:p?p.facilityFee:0,facilitatorFee:p?p.facilitatorFee:0,custodialFee:p?p.custodialFee:0,discountAmt:p?p.discountAmt:0,rateKey:p?p.rateKey:'',createdAt:new Date().toISOString(),cancelledAt:''};
   if(calResult.error&&calResult.available==null){showModal2('Calendar check unavailable',selectedFacility+' &middot; '+fmtDate(date),'<div class="alert alert-warning">&#9888;&#65039; Could not reach the live calendar. You may proceed but admin will need to verify manually.</div>',true);return;}
   if(!calResult.available){const cl=(calResult.conflicts||[]).map(c=>'<div style="padding:5px 0;border-bottom:1px solid var(--gray-200);font-size:12px">&bull; '+c.message+'</div>').join('');showModal2('Not available',selectedFacility+' on '+fmtDate(date)+' has conflicts.','<div class="alert alert-error"><strong>This date is not available.</strong></div><div style="margin-top:10px">'+cl+'</div>',false);return;}
   const approvedFacs=facilitators.filter(f=>f.facilities&&f.facilities.includes(selectedFacility));

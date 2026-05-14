@@ -787,7 +787,7 @@ const TIER_INDEX = {'Reduced Level 1':0,'Reduced Level 2':1,'Reduced Level 3':2,
 const FACILITATOR_RATE=46, CUSTODIAL_RATE=31, LTYA_DISC=0.25;
 const BOOKING_WINDOW = {'LTYA':2,'HS Clubs':2,'Special Olympics':1,'Non-LTYA Youth League':1,'General Public':1};
 
-function isCombinedGym(f){return f&&f.toLowerCase().includes('main & aux gym');}
+function isCombinedGym(f){return f&&(f.toLowerCase().includes('main & aux gym')||f.toLowerCase().includes('round & aux gym'));}
 function getRateKey(f,lights){const fl=f.toLowerCase(),L=lights==='yes';if(fl==='lths cav stadium')return L?'Stadium - Varsity Lights':'Stadium - Varsity No Lights';if(fl==='lths track stadium')return L?'Stadium - SubVarsity Lights':'Stadium - SubVarsity No Lights';if(fl.includes('baseball')||fl.includes('softball'))return L?'Baseball Lights':'Baseball No Lights';if(fl.includes('track field'))return 'Track Lane';if(fl.includes('grass'))return 'Practice Field - Secondary';if(fl==='lths round gym'||fl==='lths competition gym')return 'Gym - Secondary Main';if(fl==='lths aux gym'||fl==='lths wrestling room')return 'Gym - Secondary Aux';if(fl.includes('main & aux gym'))return 'Gym - Secondary Main';if(fl.includes('main gym'))return 'Gym - Secondary Main';if(fl.includes('aux gym'))return 'Gym - Secondary Aux';const ep=['bce','lpe','lte','she','rhe','wche','lwe'];if(ep.some(p=>fl.startsWith(p)))return 'Gym - Elementary';return 'Gym - Secondary Main';}
 function calcPrice(facility,start,end,tierName,lights,custodianHours,group,mainStart,mainEnd,auxStart,auxEnd){
   if(isCombinedGym(facility)){

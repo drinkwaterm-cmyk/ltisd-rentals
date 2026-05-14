@@ -774,7 +774,7 @@ function logout() {
 
 // ── FACILITIES & RATES ────────────────────────────────────────────────────────
 const ALL_FACILITIES = {
-  'Lake Travis High School':['LTHS Cav Stadium','LTHS Round Gym','LTHS Aux Gym','LTHS Competition Gym','LTHS Main & Aux Gym','LTHS Track Stadium','LTHS Grass Practice Field','LTHS Baseball Field','LTHS Softball Field','LTHS Wrestling Room'],
+  'Lake Travis High School':['LTHS Cav Stadium','LTHS Round Gym','LTHS Aux Gym','LTHS Competition Gym','LTHS Round & Aux Gym','LTHS Track Stadium','LTHS Grass Practice Field','LTHS Baseball Field','LTHS Softball Field','LTHS Wrestling Room'],
   'Bee Cave Middle School':['BCMS Main Gym','BCMS Aux Gym','BCMS Main & Aux Gym','BCMS Track Field','BCMS Grass'],
   'Lake Travis Middle School':['LTMS Main Gym','LTMS Aux Gym','LTMS Main & Aux Gym','LTMS Track Field'],
   'Hudson Bend Middle School':['HBMS Main Gym','HBMS Aux Gym','HBMS Main & Aux Gym','HBMS Track Field'],
@@ -794,7 +794,9 @@ function calcPrice(facility,start,end,tierName,lights,custodianHours,group,mainS
     // Calculate main and aux separately
     if(!mainStart||!mainEnd||!auxStart||!auxEnd)return null;
     const school=facility.split(' ')[0]; // LTHS, BCMS, etc.
-    const mainFac=school+' Main Gym', auxFac=school+' Aux Gym';
+    // LTHS uses "Round Gym" not "Main Gym"
+    const mainFac=school==='LTHS'?school+' Round Gym':school+' Main Gym';
+    const auxFac=school+' Aux Gym';
     const pMain=calcPriceSingle(mainFac,mainStart,mainEnd,tierName,lights,0,group);
     const pAux=calcPriceSingle(auxFac,auxStart,auxEnd,tierName,lights,0,group);
     if(!pMain||!pAux)return null;
@@ -959,7 +961,7 @@ function updatePricePreview(){
     const mainShare=(p.facilityFee*(p.mainHours/(p.mainHours+p.auxHours))).toFixed(2);
     const auxShare=(p.facilityFee*(p.auxHours/(p.mainHours+p.auxHours))).toFixed(2);
     el.innerHTML='<div style="background:var(--gray-100);border-radius:8px;padding:12px;margin-top:10px;border-left:3px solid var(--primary)"><div style="font-size:11px;font-weight:600;color:var(--gray-600);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px">Estimated cost &mdash; '+selectedTierName+' (Combined Gym)</div>'
-      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+school+' Main Gym &middot; '+p.mainHours+'h &times; $'+p.mainRate+'/hr</span><span>$'+mainShare+'</span></div>'
+      +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+(school==='LTHS'?school+' Round Gym':school+' Main Gym')+' &middot; '+p.mainHours+'h &times; $'+p.mainRate+'/hr</span><span>$'+mainShare+'</span></div>'
       +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>'+school+' Aux Gym &middot; '+p.auxHours+'h &times; $'+p.auxRate+'/hr</span><span>$'+auxShare+'</span></div>'
       +(p.discountAmt>0?'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px;color:var(--green)"><span>LTYA 25% discount</span><span>-$'+p.discountAmt.toFixed(2)+'</span></div>':'')
       +'<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-200);font-size:12px"><span>Facilitator ($46/hr &times; '+p.hours+'h &mdash; one facilitator, incl. open &amp; close)</span><span>$'+p.facilitatorFee.toFixed(2)+'</span></div>'

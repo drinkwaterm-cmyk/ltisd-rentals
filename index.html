@@ -630,41 +630,91 @@ function openModify(el){
   const r=(window._mrRentals||[]).find(x=>String(x.id)===String(rentalId));
   if(!r)return;
   document.getElementById('modify-sub').textContent=r.facility+' on '+fmtDate(r.date);
-  document.getElementById('modify-body').innerHTML=
-    '<div class="field-row" style="margin-top:10px">'
-    +'<div class="field"><label>New start time <span class="req">*</span></label><input type="time" id="modify-start" value="'+r.start+'"></div>'
-    +'<div class="field"><label>New end time <span class="req">*</span></label><input type="time" id="modify-end" value="'+r.end+'"></div>'
-    +'</div>'
-    +'<div id="modify-alert"></div>';
+  const isCombined=isCombinedGym(r.facility);
+  const school=isCombined?r.facility.split(' ')[0]:'';
+  // Parse stored activity for existing combined times e.g. "Main Gym: 9:00 AM-12:00 PM | Aux Gym: 1:00 PM-3:00 PM"
+  // Fall back to r.start/r.end for main, and r.auxStart/r.auxEnd if stored
+  const mainStartVal=r.mainStart||r.start||'';
+  const mainEndVal=r.mainEnd||r.end||'';
+  const auxStartVal=r.auxStart||'';
+  const auxEndVal=r.auxEnd||'';
+
+  if(isCombined){
+    document.getElementById('modify-body').innerHTML=
+      '<div style="background:var(--sky);border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin-top:10px;margin-bottom:10px">'
+      +'<div style="font-size:12px;font-weight:600;color:var(--blue);margin-bottom:10px">&#127944; '+school+' Combined Gym — update times separately</div>'
+      +'<div style="font-size:12px;font-weight:500;color:var(--gray-600);margin-bottom:6px">Main Gym</div>'
+      +'<div class="field-row" style="margin-bottom:10px">'
+      +'<div class="field"><label>Start</label><input type="time" id="modify-main-start" value="'+mainStartVal+'"></div>'
+      +'<div class="field"><label>End</label><input type="time" id="modify-main-end" value="'+mainEndVal+'"></div>'
+      +'</div>'
+      +'<div style="font-size:12px;font-weight:500;color:var(--gray-600);margin-bottom:6px">Aux Gym</div>'
+      +'<div class="field-row">'
+      +'<div class="field"><label>Start</label><input type="time" id="modify-aux-start" value="'+auxStartVal+'"></div>'
+      +'<div class="field"><label>End</label><input type="time" id="modify-aux-end" value="'+auxEndVal+'"></div>'
+      +'</div>'
+      +'</div>'
+      +'<div id="modify-alert"></div>';
+  } else {
+    document.getElementById('modify-body').innerHTML=
+      '<div class="field-row" style="margin-top:10px">'
+      +'<div class="field"><label>New start time <span class="req">*</span></label><input type="time" id="modify-start" value="'+r.start+'"></div>'
+      +'<div class="field"><label>New end time <span class="req">*</span></label><input type="time" id="modify-end" value="'+r.end+'"></div>'
+      +'</div>'
+      +'<div id="modify-alert"></div>';
+  }
   document.getElementById('modal-modify').classList.add('open');
 }
 
 async function executeModify(){
   const r=(window._mrRentals||[]).find(x=>String(x.id)===String(modifyTargetId));
   if(!r)return;
-  const newStart=document.getElementById('modify-start').value;
-  const newEnd=document.getElementById('modify-end').value;
-  if(!newStart||!newEnd){document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">Please enter both start and end times.</div>';return;}
-  const[sh,sm]=newStart.split(':').map(Number),[eh,em]=newEnd.split(':').map(Number);
-  if((eh*60+em)<=(sh*60+sm)){document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">End time must be after start time.</div>';return;}
+  const isCombined=isCombinedGym(r.facility);
+  let newStart,newEnd,newMainStart,newMainEnd,newAuxStart,newAuxEnd;
+
+  if(isCombined){
+    newMainStart=document.getElementById('modify-main-start').value;
+    newMainEnd=document.getElementById('modify-main-end').value;
+    newAuxStart=document.getElementById('modify-aux-start').value;
+    newAuxEnd=document.getElementById('modify-aux-end').value;
+    if(!newMainStart||!newMainEnd||!newAuxStart||!newAuxEnd){
+      document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">Please enter times for both Main Gym and Aux Gym.</div>';return;
+    }
+    newStart=newMainStart;newEnd=newMainEnd; // main gym times are the primary start/end
+  } else {
+    newStart=document.getElementById('modify-start').value;
+    newEnd=document.getElementById('modify-end').value;
+    if(!newStart||!newEnd){document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">Please enter both start and end times.</div>';return;}
+    const[sh,sm]=newStart.split(':').map(Number),[eh,em]=newEnd.split(':').map(Number);
+    if((eh*60+em)<=(sh*60+sm)){document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">End time must be after start time.</div>';return;}
+  }
+
   document.getElementById('modify-alert').innerHTML='<div class="alert alert-info"><span class="checking-spinner">Saving...</span></div>';
-  const oldStart=r.start, oldEnd=r.end;
-  const result=await api({action:'updateRental',id:String(r.id),start:newStart,end:newEnd});
+  const oldStart=r.start,oldEnd=r.end;
+
+  const updateParams={action:'updateRental',id:String(r.id),start:newStart,end:newEnd};
+  if(isCombined){updateParams.mainStart=newMainStart;updateParams.mainEnd=newMainEnd;updateParams.auxStart=newAuxStart;updateParams.auxEnd=newAuxEnd;}
+
+  const result=await api(updateParams);
   if(result.success){
     r.start=newStart;r.end=newEnd;
+    if(isCombined){r.mainStart=newMainStart;r.mainEnd=newMainEnd;r.auxStart=newAuxStart;r.auxEnd=newAuxEnd;}
     closeModal('modal-modify');
-    // Notify facilitator of time change
+    // Notify facilitator
     if(r.facilitator){
       const facInfo=(window._mrFacMap||{})[r.facilitator];
       const facEmail=facInfo?facInfo.email:'';
       if(facEmail){
+        const oldTimeStr=isCombined?'Main: '+fmtTime(oldStart)+'-'+fmtTime(oldEnd)+' | Aux: '+fmtTime(r.auxStart||''):fmtTime(oldStart)+'-'+fmtTime(oldEnd);
+        const newTimeStr=isCombined?'Main: '+fmtTime(newMainStart)+'-'+fmtTime(newMainEnd)+' | Aux: '+fmtTime(newAuxStart)+'-'+fmtTime(newAuxEnd):fmtTime(newStart)+'-'+fmtTime(newEnd);
         await api({action:'notifyModify',facility:r.facility,date:r.date,
-          oldStart,oldEnd,newStart,newEnd,
+          oldStart:oldTimeStr,oldEnd:'',newStart:newTimeStr,newEnd:'',
           group:r.group,contactName:r.name,contactEmail:r.email,
           facilitatorName:r.facilitator,facilitatorEmail:facEmail});
       }
     }
-    showAlert('mr-alert','success','Time updated to '+fmtTime(newStart)+' – '+fmtTime(newEnd)+'. Facilitator has been notified.');
+    const successMsg=isCombined?'Times updated — Main: '+fmtTime(newMainStart)+'–'+fmtTime(newMainEnd)+' | Aux: '+fmtTime(newAuxStart)+'–'+fmtTime(newAuxEnd)+'. Facilitator notified.':'Time updated to '+fmtTime(newStart)+' – '+fmtTime(newEnd)+'. Facilitator notified.';
+    showAlert('mr-alert','success',successMsg);
     loadMyRentals();
   } else {
     document.getElementById('modify-alert').innerHTML='<div class="alert alert-error">Could not save: '+(result.error||'Unknown error')+'</div>';
@@ -1219,13 +1269,29 @@ async function executeCancel(){
   const updates={id:String(r.id),status:isLate?'late-cancel':'cancelled',cancelledAt:new Date().toISOString()};
   if(isLate){updates.price=r.facilitatorFee||0;updates.facilityFee=0;updates.custodialFee=0;updates.discountAmt=0;}
   else{updates.price=0;updates.facilityFee=0;updates.facilitatorFee=0;updates.custodialFee=0;updates.discountAmt=0;}
+
+  // Show loading in cancel button
+  const cancelBtn=document.querySelector('#modal-cancel .btn-warn');
+  if(cancelBtn){cancelBtn.disabled=true;cancelBtn.textContent='Cancelling...';}
+
   const result=await api({action:'updateRental',...updates});
+  if(cancelBtn){cancelBtn.disabled=false;cancelBtn.textContent='Yes, cancel';}
+
+  // Determine if we came from Admin or My Rentals
+  const fromMyRentals=authState.role==='myrentals';
+
   if(result.success){
     Object.assign(r,updates);
     closeModal('modal-cancel');
-    renderAdmin();
-    // Send cancellation emails
-    await api({
+    if(fromMyRentals){
+      showAlert('mr-alert','success','Rental cancelled successfully.');
+      loadMyRentals();
+    } else {
+      renderAdmin();
+    }
+
+    // Send cancellation emails (fire and forget)
+    api({
       action:'notifyCancel',
       facility:r.facility,
       date:r.date,
@@ -1240,7 +1306,8 @@ async function executeCancel(){
       facilitatorFee:String(r.facilitatorFee||0)
     });
   } else {
-    showAlert('','error','Could not cancel rental.');
+    const alertId=fromMyRentals?'mr-alert':'admin-alert';
+    showAlert(alertId,'error','Could not cancel rental. Please try again.');
   }
 }
 
